@@ -58,11 +58,17 @@ Or from inside the target repo, installing straight from the remote:
 curl -fsSL https://raw.githubusercontent.com/AndyLan0503/agnostic-agent-framwork/main/scripts/adopt.py | python3 - . --from https://github.com/AndyLan0503/agnostic-agent-framwork
 ```
 
-The installer shallow-clones the framework to a temp dir and adopts from
-it. Re-running the same command later is the update path: new framework
-files are added, files identical to the framework are kept silently, and
-anything that differs - whether you changed it or the framework did -
-lands as `.framework-new` to merge on your terms.
+The installer clones the framework to a temp dir and adopts from it,
+recording the framework commit in the target's `.framework-version`
+(commit that file). Re-running the same command later is the update path,
+resolved per file against that base:
+
+- framework changed, you didn't touch the file -> fast-forwarded (`^`)
+- you customized it, framework unchanged -> kept, silently (`=`)
+- both changed -> kept, new version lands as `.framework-new` to merge (`!`)
+
+Your filled-in AGENTS.md, Makefile and permissions stay quiet across
+updates unless the framework actually changed them.
 
 Works for new and existing repos: nothing is ever overwritten, and where
 an existing file differs the framework version lands beside it as

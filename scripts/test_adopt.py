@@ -53,22 +53,22 @@ class AdoptTest(unittest.TestCase):
     def test_copies_scaffold_into_empty_target(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp)
-            copied, kept, conflicted = adopt.adopt(target)
-            self.assertEqual(kept, [])
-            self.assertEqual(conflicted, [])
+            result = adopt.adopt(target)
+            self.assertEqual(result.kept, [])
+            self.assertEqual(result.conflicted, [])
             self.assertTrue((target / "AGENTS.md").is_file())
             self.assertTrue((target / "scripts/gnhf_guard.py").is_file())
-            self.assertIn(Path("AGENTS.md"), copied)
+            self.assertIn(Path("AGENTS.md"), result.copied)
 
     def test_differing_existing_file_gets_framework_new_beside_it(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp)
             existing = target / "CLAUDE.md"
             existing.write_text("project-specific content")
-            copied, kept, conflicted = adopt.adopt(target)
+            result = adopt.adopt(target)
             self.assertEqual(existing.read_text(), "project-specific content")
-            self.assertIn(Path("CLAUDE.md"), conflicted)
-            self.assertNotIn(Path("CLAUDE.md"), copied)
+            self.assertIn(Path("CLAUDE.md"), result.conflicted)
+            self.assertNotIn(Path("CLAUDE.md"), result.copied)
             framework_new = target / "CLAUDE.md.framework-new"
             self.assertTrue(framework_new.is_file())
             self.assertEqual(
@@ -82,10 +82,75 @@ class AdoptTest(unittest.TestCase):
             source = adopt.FRAMEWORK_ROOT / "CLAUDE.md"
             existing = target / "CLAUDE.md"
             existing.write_text(source.read_text())
-            copied, kept, conflicted = adopt.adopt(target)
-            self.assertIn(Path("CLAUDE.md"), kept)
-            self.assertNotIn(Path("CLAUDE.md"), conflicted)
+            result = adopt.adopt(target)
+            self.assertIn(Path("CLAUDE.md"), result.kept)
+            self.assertNotIn(Path("CLAUDE.md"), result.conflicted)
             self.assertFalse((target / "CLAUDE.md.framework-new").exists())
+
+
+class UpdateTest(unittest.TestCase):
+    """Re-adopting against an evolved framework, with a recorded base version."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        tmp = Path(self._tmp.name)
+        self.framework = tmp / "framework"
+        self.framework.mkdir()
+        make_git_repo(self.framework, {
+            "AGENTS.md": "guardrails v1\n",
+            "roles/implementer.md": "role v1\n",
+        })
+        self.target = tmp / "target"
+        self.target.mkdir()
+        adopt.adopt(self.target, root=self.framework)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def commit_framework_change(self, rel, content):
+        (self.framework / rel).write_text(content)
+        subprocess.run(["git", "add", "-A"], cwd=self.framework, check=True)
+        subprocess.run(
+            ["git", "-c", "user.email=t@t", "-c", "user.name=t",
+             "commit", "-q", "-m", "evolve"],
+            cwd=self.framework, check=True,
+        )
+
+    def test_records_framework_version_on_adopt(self):
+        sha = (self.target / ".framework-version").read_text().strip()
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.framework,
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        self.assertEqual(sha, head)
+
+    def test_untouched_file_fast_forwards_on_update(self):
+        self.commit_framework_change("AGENTS.md", "guardrails v2\n")
+        result = adopt.adopt(self.target, root=self.framework)
+        self.assertIn(Path("AGENTS.md"), result.updated)
+        self.assertEqual((self.target / "AGENTS.md").read_text(), "guardrails v2\n")
+        self.assertFalse((self.target / "AGENTS.md.framework-new").exists())
+
+    def test_customized_file_with_unchanged_framework_stays_quiet(self):
+        (self.target / "AGENTS.md").write_text("guardrails v1 + my invariants\n")
+        result = adopt.adopt(self.target, root=self.framework)
+        self.assertIn(Path("AGENTS.md"), result.kept)
+        self.assertEqual(result.conflicted, [])
+        self.assertFalse((self.target / "AGENTS.md.framework-new").exists())
+        self.assertEqual(
+            (self.target / "AGENTS.md").read_text(),
+            "guardrails v1 + my invariants\n",
+        )
+
+    def test_both_changed_is_a_conflict(self):
+        (self.target / "AGENTS.md").write_text("guardrails v1 + my invariants\n")
+        self.commit_framework_change("AGENTS.md", "guardrails v2\n")
+        result = adopt.adopt(self.target, root=self.framework)
+        self.assertIn(Path("AGENTS.md"), result.conflicted)
+        self.assertEqual(
+            (self.target / "AGENTS.md.framework-new").read_text(),
+            "guardrails v2\n",
+        )
 
 
 class RemoteAdoptTest(unittest.TestCase):
@@ -103,12 +168,12 @@ class RemoteAdoptTest(unittest.TestCase):
             target.mkdir()
 
             root = adopt.fetch_framework(str(source), tmp / "clone")
-            copied, kept, conflicted = adopt.adopt(target, root=root)
+            result = adopt.adopt(target, root=root)
 
             self.assertEqual((target / "AGENTS.md").read_text(), "# AGENTS")
             self.assertEqual((target / "roles/implementer.md").read_text(), "role")
             self.assertFalse((target / "README.md").exists())
-            self.assertIn(Path("AGENTS.md"), copied)
+            self.assertIn(Path("AGENTS.md"), result.copied)
 
 
 if __name__ == "__main__":

@@ -70,6 +70,12 @@ Invariants to preserve:
    - Ask an agent in a fresh session: "what are the guardrails here?" -
      the answer should come from AGENTS.md.
 
+**Updating later:** re-run the same install command. The recorded
+`.framework-version` (commit it with the scaffold) enables per-file
+three-way resolution: untouched files fast-forward, your customizations
+stay quiet, and only genuine two-sided changes land as `.framework-new`
+to merge. After merging a conflicted file, delete the `.framework-new`.
+
 For a large existing repo, adopt incrementally in this order, verifying
 each layer before the next: AGENTS.md + shims + permissions first (agents
 behave immediately), then roles/skills and the pipeline, then gnhf last -
