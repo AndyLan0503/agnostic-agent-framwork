@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "deny": [
+      "WebFetch",
+      "WebSearch",
+      "Bash(git push*)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)",
+      "Bash(git remote*)",
+      "Bash(gh *)",
+      "Bash(gcloud *)",
+      "Bash(aws *)",
+      "Bash(az *)",
+      "Bash(kubectl *)",
+      "Bash(helm *)",
+      "Bash(terraform apply*)",
+      "Bash(terraform destroy*)",
+      "Bash(terraform plan*)",
+      "Bash(terraform init*)",
+      "Bash(terraform import*)",
+      "Bash(terraform state*)",
+      "Bash(terraform refresh*)",
+      "Bash(terraform workspace*)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(rsync *)",
+      "Bash(docker push*)",
+      "Bash(npm publish*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*serviceaccount*.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit|Bash|WebFetch|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/gnhf_guard.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
