@@ -5,7 +5,7 @@ description: >-
   Use when standing up the framework (AGENTS.md, roles, skills, gnhf
   containment, collaboration artifacts) in a project. Covers copying,
   filling placeholders, wiring enforcement, and verifying the result.
-reconcile:
+knowform:
   direction: code-is-truth
   bindings:
     - doc_anchor: whole-doc
@@ -73,7 +73,7 @@ Invariants to preserve:
    format authority (required `type`; use `timestamp`, not `updated`). To
    add card types beyond `{convention, mechanism}`, extend `TYPE_VOCAB` in
    `framework/scripts/test_knowledge_cards.py`. A sourced card carries a
-   `code-is-truth` `reconcile:` binding so its claim is drift-governed
+   `code-is-truth` `knowform:` binding so its claim is drift-governed
    (pattern: `framework/knowledge/gnhf-safe-subcommands.md`).
 9. **Verify.**
    - `make setup && make test` green.

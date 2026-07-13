@@ -17,7 +17,7 @@ related: [<other-card-id>]
 adr: ["NNNN"]              # decision records backing this fact, if any
 confidence: high | medium | low
 sources: ["<file or glob that proves the claim>"]
-reconcile:                 # OKF extension; drift binding, if the card is sourced
+knowform:                  # OKF extension; drift binding, if the card is sourced
   direction: code-is-truth
   bindings:
     - doc_anchor: <anchor or whole-doc>
@@ -54,7 +54,7 @@ Field mapping (the contract this document is the authority for):
 | `adr` | extension | backing decision records |
 | `confidence` | extension | high / medium / low |
 | `sources` | extension | proof-of-claim file globs; NOT `resource` |
-| `reconcile` | extension | reconciler drift-binding block (see below) |
+| `knowform` | extension | knowform drift-binding block (see below) |
 
 Rationale:
 
@@ -66,18 +66,19 @@ Rationale:
   `resource` is the canonical link to the resource a card describes, while
   `sources` are proof-of-claim file globs the drift reconciler checks against.
 - `resource` stays reserved but unused until a card has a natural URL.
-- `reconcile:` is declared an official OKF extension field (see below), so one
+- `knowform:` is declared an official OKF extension field (see below), so one
   frontmatter format serves both this knowledge base and the drift reconciler.
 
-### `reconcile:` is an OKF extension field
+### `knowform:` is an OKF extension field
 
-The drift reconciler (framework/docs/adr/0003, `framework/scripts/reconcile/`) reads a nested
-`reconcile:` block from a doc's frontmatter. That block is an OKF extension
-field: a single card can be simultaneously an OKF document (its scalar OKF
-fields and extensions) and a reconcile-governed one (the `reconcile:` block).
+The drift reconciler (framework/docs/adr/0003) is knowform, an external published tool
+(https://pypi.org/project/knowform/, github.com/AndyLan0503/knowform). It reads
+a nested `knowform:` block from a doc's frontmatter. That block is an OKF
+extension field: a single card can be simultaneously an OKF document (its scalar
+OKF fields and extensions) and a knowform-governed one (the `knowform:` block).
 One frontmatter format covers both; see framework/docs/specs/reconcile.md.
 
-Every sourced card carries a `code-is-truth` `reconcile:` binding whose
+Every sourced card carries a `code-is-truth` `knowform:` binding whose
 `governs` is its `sources`, so each card's claim is drift-checked against the
 file that proves it.
 

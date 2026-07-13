@@ -2,15 +2,16 @@
 
 Every `framework/knowledge/*.md` card must carry an OKF-required `type` in the closed
 vocabulary, must not carry the retired `updated` key, and any card with a
-`reconcile:` block must parse cleanly via the reconciler's own parser and
-drift-govern exactly its `sources` - the guard that the OKF format and the
-reconcile format are one and that every sourced card is drift-governed.
+`knowform:` block must declare a valid drift `direction` and drift-govern
+exactly its `sources` - the guard that the OKF format and the knowform drift
+format are one and that every sourced card is drift-governed. The knowform
+tool itself is external (https://pypi.org/project/knowform/); this repo keeps
+`knowform.lock` in sync via `knowform sync`, so the check here parses the
+`knowform:` frontmatter with the stdlib alone rather than importing the tool.
 """
 import ast
 import unittest
 from pathlib import Path
-
-from reconcile.frontmatter import parse_frontmatter
 
 KNOWLEDGE = Path(__file__).resolve().parent.parent / "knowledge"
 
@@ -20,6 +21,9 @@ KNOWLEDGE = Path(__file__).resolve().parent.parent / "knowledge"
 # framework/scripts/gnhf_guard.py (see framework/skills/adopt-framework/SKILL.md step 8). Here it
 # stays {convention, mechanism}; adopters add their types, test-first.
 TYPE_VOCAB = {"convention", "mechanism"}
+
+# The knowform drift `direction` enum (mirrors knowform's own vocabulary).
+DIRECTIONS = {"code-is-truth", "doc-is-truth", "manual"}
 
 
 def cards() -> list[Path]:
@@ -56,16 +60,57 @@ def strip_inline_comment(value: str) -> str:
     return value.rstrip()
 
 
-def frontmatter_has_reconcile_key(text: str) -> bool:
-    """True when the frontmatter block carries a top-level `reconcile:` key.
+def frontmatter_has_knowform_key(text: str) -> bool:
+    """True when the frontmatter block carries a top-level `knowform:` key.
 
     Gated on the parsed frontmatter, not a whole-text substring, so a card
-    that only mentions `reconcile:` in its body prose does not false-trip.
+    that only mentions `knowform:` in its body prose does not false-trip.
     """
     for line in frontmatter_lines(text):
-        if line and line[0] not in " \t" and line.split(":", 1)[0].strip() == "reconcile":
+        if line and line[0] not in " \t" and line.split(":", 1)[0].strip() == "knowform":
             return True
     return False
+
+
+def knowform_body(text: str) -> list[str]:
+    """Lines nested under the top-level `knowform:` frontmatter key."""
+    body: list[str] = []
+    in_block = False
+    base_indent = 0
+    for line in frontmatter_lines(text):
+        if not line.strip() or line.lstrip().startswith("#"):
+            if in_block:
+                body.append(line)
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        if not in_block:
+            if indent == 0 and line.split(":", 1)[0].strip() == "knowform":
+                in_block = True
+                base_indent = indent
+            continue
+        if indent <= base_indent:
+            break
+        body.append(line)
+    return body
+
+
+def knowform_direction(text: str) -> str | None:
+    """The `direction:` scalar inside the `knowform:` block, or None."""
+    for line in knowform_body(text):
+        stripped = line.strip()
+        if stripped.split(":", 1)[0].strip() == "direction":
+            return strip_inline_comment(stripped.split(":", 1)[1].strip())
+    return None
+
+
+def knowform_governs(text: str) -> set[str]:
+    """The set of `governs:` paths across the `knowform:` bindings."""
+    out = set()
+    for line in knowform_body(text):
+        stripped = line.strip().lstrip("-").strip()
+        if stripped.split(":", 1)[0].strip() == "governs":
+            out.add(strip_inline_comment(stripped.split(":", 1)[1].strip()))
+    return out
 
 
 def top_level_sources(text: str) -> set[str]:
@@ -103,32 +148,36 @@ class KnowledgeCardTest(unittest.TestCase):
                     "retired `updated` key still present; rename to `timestamp`",
                 )
 
-    def test_reconcile_blocks_parse_via_reconciler(self):
+    def test_knowform_blocks_declare_valid_direction(self):
+        """Every `knowform:` block parses (stdlib) to a valid drift direction
+        and names at least one governed source."""
         for card in cards():
             with self.subTest(card=card.name):
                 text = card.read_text(encoding="utf-8")
-                if not frontmatter_has_reconcile_key(text):
+                if not frontmatter_has_knowform_key(text):
                     continue
-                doc = parse_frontmatter(text)
-                self.assertIsNotNone(doc, "reconcile block did not parse")
-                self.assertIsNone(doc.error, doc.error)
-                self.assertIsNotNone(doc.direction)
+                self.assertIn(
+                    knowform_direction(text),
+                    DIRECTIONS,
+                    "knowform block missing or invalid `direction`",
+                )
+                self.assertTrue(
+                    knowform_governs(text),
+                    "knowform block governs no source",
+                )
 
-    def test_reconcile_governs_equal_sources(self):
+    def test_knowform_governs_equal_sources(self):
         """Every sourced card is drift-governed with one binding per source:
         the set of `governs` across its bindings equals its `sources` set."""
         for card in cards():
             with self.subTest(card=card.name):
                 text = card.read_text(encoding="utf-8")
-                if not frontmatter_has_reconcile_key(text):
+                if not frontmatter_has_knowform_key(text):
                     continue
-                doc = parse_frontmatter(text)
-                self.assertIsNotNone(doc, "reconcile block did not parse")
-                self.assertIsNone(doc.error, doc.error)
                 self.assertEqual(
-                    {b.governs for b in doc.bindings},
+                    knowform_governs(text),
                     top_level_sources(text),
-                    "reconcile `governs` set must equal the card's `sources`",
+                    "knowform `governs` set must equal the card's `sources`",
                 )
 
 

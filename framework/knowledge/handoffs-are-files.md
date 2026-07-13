@@ -9,7 +9,7 @@ related: [shim-files-point-to-agents-md]
 adr: ["0001"]
 confidence: high
 sources: ["AGENTS.md", "framework/docs/adr/0001-tool-neutral-source-of-truth.md"]
-reconcile:
+knowform:
   direction: code-is-truth
   bindings:
     - doc_anchor: handoffs-are-files

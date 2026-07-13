@@ -9,7 +9,7 @@ related: [handoffs-are-files]
 adr: ["0001"]
 confidence: high
 sources: ["CLAUDE.md", "GEMINI.md", ".cursor/rules/agents.mdc", ".github/copilot-instructions.md"]
-reconcile:
+knowform:
   direction: code-is-truth
   bindings:
     - doc_anchor: shim-files-point-to-agents-md

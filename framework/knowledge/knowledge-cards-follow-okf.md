@@ -8,7 +8,7 @@ id: knowledge-cards-follow-okf
 related: [handoffs-are-files, shim-files-point-to-agents-md]
 confidence: high
 sources: ["framework/knowledge/README.md"]
-reconcile:
+knowform:
   direction: code-is-truth
   bindings:
     - doc_anchor: knowledge-cards-follow-okf
