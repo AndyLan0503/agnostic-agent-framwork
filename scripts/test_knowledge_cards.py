@@ -13,6 +13,12 @@ from pathlib import Path
 from reconcile.frontmatter import parse_frontmatter
 
 KNOWLEDGE = Path(__file__).resolve().parent.parent / "knowledge"
+
+# Closed OKF `type` vocabulary for THIS repo (knowledge/README.md is the
+# authority). A project adopting the framework extends this set to its own
+# card types - same per-project extension-point idiom as `SAFE_BASH` in
+# scripts/gnhf_guard.py (see skills/adopt-framework/SKILL.md step 8). Here it
+# stays {convention, mechanism}; adopters add their types, test-first.
 TYPE_VOCAB = {"convention", "mechanism"}
 
 
