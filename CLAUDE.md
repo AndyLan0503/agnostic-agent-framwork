@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-All durable guidance for this repository lives in AGENTS.md (docs/adr/0001).
+All durable guidance for this repository lives in AGENTS.md (framework/docs/adr/0001).
 
 @AGENTS.md
 
-Fast reference: facts in `knowledge/`, decisions in `docs/adr/`, roles in
-`roles/`, runbooks in `skills/`.
+Fast reference: facts in `framework/knowledge/`, decisions in `framework/docs/adr/`, roles in
+`framework/roles/`, runbooks in `framework/skills/`.

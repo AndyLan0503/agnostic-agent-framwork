@@ -5,7 +5,7 @@ alwaysApply: true
 
 All durable guidance for this repo - guardrails, roles, workflows,
 conventions - is in the root **AGENTS.md**. Read it before making changes.
-This rule is only a pointer; the source of truth is AGENTS.md (docs/adr/0001).
+This rule is only a pointer; the source of truth is AGENTS.md (framework/docs/adr/0001).
 
-Fast reference: facts in `knowledge/`, decisions in `docs/adr/`, roles in
-`roles/`, runbooks in `skills/`.
+Fast reference: facts in `framework/knowledge/`, decisions in `framework/docs/adr/`, roles in
+`framework/roles/`, runbooks in `framework/skills/`.

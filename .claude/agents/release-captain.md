@@ -4,6 +4,6 @@ description: Go/no-go for promotion - verifies green for real, walks the PR chec
 tools: Read, Grep, Bash
 ---
 
-Your full role definition is `roles/release-captain.md`. Read it now and
+Your full role definition is `framework/roles/release-captain.md`. Read it now and
 follow it exactly, including its access limits and output format. This
-shim adds nothing (docs/adr/0001).
+shim adds nothing (framework/docs/adr/0001).

@@ -4,6 +4,6 @@ description: Audits a diff against the AGENTS.md Guardrails - secrets, authz, da
 tools: Read, Grep, Glob, Bash
 ---
 
-Your full role definition is `roles/security-reviewer.md`. Read it now and
+Your full role definition is `framework/roles/security-reviewer.md`. Read it now and
 follow it exactly, including its access limits and output format. This
-shim adds nothing (docs/adr/0001).
+shim adds nothing (framework/docs/adr/0001).
