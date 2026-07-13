@@ -60,9 +60,12 @@ IGNORE_FILE = ".reconcileignore"
 
 
 def load_ignore(root: Path) -> list[str]:
-    """Repo-root `.reconcileignore`: fnmatch/prefix patterns (POSIX, repo-
-    relative) for paths that are not a governed corpus - test fixtures,
-    vendored docs. One per line; `#` comments and blanks ignored."""
+    """Repo-root `.reconcileignore`: one pattern per line (`#` comments/blanks
+    skipped) for paths that are not a governed corpus - test fixtures, vendored
+    docs. A pattern matches a repo-relative POSIX path as a path prefix (`docs`
+    ignores `docs/` and everything under it) OR as an fnmatch glob where `*`
+    spans `/` (`*.md` ignores every markdown doc - deliberately broad). A
+    leading `/` is stripped (repo-root relative)."""
     f = root / IGNORE_FILE
     if not f.exists():
         return []
@@ -70,7 +73,7 @@ def load_ignore(root: Path) -> list[str]:
     for line in f.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
-            out.append(line.rstrip("/"))
+            out.append(line.lstrip("/").rstrip("/"))
     return out
 
 
@@ -89,6 +92,12 @@ def _pruned_walk(root: Path, suffix: str,
     stack = [root]
     while stack:
         for entry in sorted(stack.pop().iterdir()):
+            # Never follow a symlink: a symlinked dir or `.md`/`.py` can point
+            # outside the repo, and the doc side is the one `apply` writes.
+            # Containment is by construction - the walk only descends real
+            # dirs under root (security review, Finding 1).
+            if entry.is_symlink():
+                continue
             rel = entry.relative_to(root)
             if entry.is_dir():
                 if (entry.name.startswith(".") or entry.name in _VENDORED
@@ -161,9 +170,13 @@ def resolve_bindings(root: Path) -> Resolution:
                 gov_file = gov.path
                 code_region = resolve_code_region(
                     root, gov_file, binding.code_anchor)
-                # Fold the governed file into the identity so a glob matching
-                # multiple files yields distinct, non-colliding nodes/entries.
+                # Identity is per (binding, governed-file): fold in the
+                # governed file (glob expansion) AND the code_anchor, so two
+                # bindings narrowing the same file to different symbols do not
+                # collide into one lockfile row.
                 entry_id = f"{key}::{gov_file}"
+                if binding.code_anchor:
+                    entry_id += f"::{binding.code_anchor}"
                 out.resolved.append(_Resolved(
                     entry_id=entry_id, key=key, direction=managed.direction,
                     governs=str(gov_file), doc_region=doc_region,
@@ -191,6 +204,11 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
     graph = build_graph(root, doc_nodes, py_files | _all_py(root, res.ignore))
     changed_code = _changed_code_keys(graph, changed)
     frontier_keys = frontier(graph, changed_code, depth)
+    # Recorded bindings seed their blast-radius from recorded-vs-actual code
+    # drift, not git - so a re-blessed edit stops seeding once blessed, while
+    # a genuinely-drifted callee still reaches its callers' docs.
+    recorded_frontier = frontier(
+        graph, _recorded_drift_keys(recorded, resolved, graph), depth)
 
     for r in resolved:
         # Recorded state (M2), when present, is the authoritative drift signal:
@@ -203,13 +221,18 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
         if record is not None:
             structural = classify(record.doc_hash != r.doc_hash,
                                   record.code_hash != r.code_hash)
-            if structural is VerdictKind.IN_SYNC:
+            if structural is not VerdictKind.IN_SYNC:
+                # Direct drift on the bound region.
+                entries.append(_judged(root, r, judge) if judge is not None
+                               else _entry(r, structural, on_frontier=True))
+            elif r.entry_id in recorded_frontier:
+                # Own region unchanged, but a transitive dependency drifted.
+                entries.append(_judged(root, r, judge) if judge is not None
+                               else _entry(r, VerdictKind.NEEDS_JUDGE,
+                                           on_frontier=True))
+            else:
                 entries.append(_entry(r, VerdictKind.IN_SYNC,
                                       on_frontier=False))
-            elif judge is not None:
-                entries.append(_judged(root, r, judge))
-            else:
-                entries.append(_entry(r, structural, on_frontier=True))
             continue
 
         doc_changed = changed.overlaps(
@@ -258,6 +281,21 @@ def _safe_hash(root: Path, region: Region) -> str | None:
 
 def _all_py(root: Path, ignore: list[str]) -> set[Path]:
     return set(_pruned_walk(root, ".py", ignore))
+
+
+def _recorded_drift_keys(recorded, resolved: list[_Resolved], graph) -> set[str]:
+    """Graph code keys whose recorded code_hash no longer matches actual - the
+    blast-radius seeds when a lockfile exists (hash-based, git-independent)."""
+    if not recorded:
+        return set()
+    keys: set[str] = set()
+    for r in resolved:
+        rec = recorded.get(r.entry_id)
+        if rec is not None and rec.code_hash != r.code_hash:
+            code_key = graph.governs.get(r.entry_id)
+            if code_key:
+                keys.add(code_key)
+    return keys
 
 
 def _changed_code_keys(graph, changed: ChangedSet) -> set[str]:

@@ -95,6 +95,35 @@ class ThreeWayStateTest(unittest.TestCase):
             e = entry(result, ADD)
             self.assertEqual(e.verdict, VerdictKind.CONFLICT.value)
 
+    def test_transitive_dependent_still_reaches_frontier_under_recorded(self):
+        # scaled_add calls add; its doc is bound to scaled_add. Editing only
+        # add's body must still reach scaled_add's doc via the blast-radius,
+        # even with a lockfile - the recorded-authoritative path must not drop
+        # transitive drift (interrogator BLOCKER 1).
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Repo(Path(tmp))
+            repo.edit("calc.py", "return a + b", "return a + b + 1")
+            judge = RecordingJudge()
+            result = plan(repo.root, base="HEAD", judge=judge, depth=2)
+            e = entry(result, "managed_scaled.md#scaled-behavior")
+            self.assertTrue(e.on_frontier,
+                            "transitive drift must survive recorded state")
+            self.assertIn("managed_scaled.md#scaled-behavior",
+                          {c.key for c in judge.calls})
+
+    def test_transitive_dependent_quiets_after_resync(self):
+        # After re-blessing, the transitive risk is gone: no spurious re-flag
+        # of the caller's doc while the (now blessed) code edit is uncommitted.
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Repo(Path(tmp))
+            repo.edit("calc.py", "return a + b", "return a + b + 1")
+            sync(repo.root)  # re-bless the edited world
+            judge = RecordingJudge()
+            result = plan(repo.root, base="HEAD", judge=judge)
+            self.assertEqual(judge.calls, [])
+            self.assertEqual(entry(result, "managed_scaled.md#scaled-behavior")
+                             .verdict, VerdictKind.IN_SYNC.value)
+
     def test_resync_after_code_edit_returns_to_in_sync(self):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Repo(Path(tmp))

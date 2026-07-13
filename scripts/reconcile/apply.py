@@ -100,12 +100,12 @@ def apply(root: Path, generator: Generator | None = None) -> ApplyResult:
                 r.entry_id, "code-drift: no generator configured"))
             continue
 
-        if _regenerate(root, r, generator, updated, blessed_at):
+        ok, why = _regenerate(root, r, generator, updated, blessed_at)
+        if ok:
             result.applied.append(r.entry_id)
             wrote = True
         else:
-            result.surfaced.append(Refusal(
-                r.entry_id, "anchor fences vanished before write; skipped"))
+            result.surfaced.append(Refusal(r.entry_id, why))
 
     if wrote:
         docstate.write(root, DocState(version=recorded.version,
@@ -114,21 +114,40 @@ def apply(root: Path, generator: Generator | None = None) -> ApplyResult:
 
 
 def _regenerate(root: Path, r, generator: Generator,
-                updated: dict[str, Record], blessed_at: str) -> bool:
+                updated: dict[str, Record], blessed_at: str) -> tuple[bool, str]:
     """Write regenerated prose into the doc's fenced region and re-bless the
-    record. Returns False (writing nothing) if the fences are gone."""
+    record. Returns (False, reason) - writing nothing - when the target is
+    unsafe or the generator output would corrupt the fenced structure."""
+    doc_file = root / r.doc_region.path
+    # Defense in depth: the walk already excludes symlinks, but re-check right
+    # before the write so a swapped path can never escape root (security F1).
+    if doc_file.is_symlink() or not _within(root, doc_file):
+        return False, "doc path escapes the repository; refused"
     item = build_frontier(root, r.key, r.direction, r.binding,
                           r.doc_region, r.code_region)
-    doc_file = root / r.doc_region.path
+    new_inner = generator(item)
+    if _has_fence_marker(new_inner, r.binding.doc_anchor):
+        return False, "generator emitted anchor fence markers; refused"
     new_text = replace_fenced_region(
-        doc_file.read_text(encoding="utf-8"),
-        r.binding.doc_anchor, generator(item))
+        doc_file.read_text(encoding="utf-8"), r.binding.doc_anchor, new_inner)
     if new_text is None:
-        return False
+        return False, "anchor fences vanished before write; skipped"
     doc_file.write_text(new_text, encoding="utf-8")
     new_region = resolve_doc_region(root, r.doc_region.path, r.binding)
     updated[r.entry_id] = Record(
         direction=r.direction.value, governs=r.governs,
         doc_hash=hash_span(new_region.text(root)), code_hash=r.code_hash,
         last_verdict=VerdictKind.IN_SYNC.value, blessed_at=blessed_at)
-    return True
+    return True, ""
+
+
+def _within(root: Path, p: Path) -> bool:
+    try:
+        return p.resolve().is_relative_to(root.resolve())
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
+def _has_fence_marker(text: str, anchor: str) -> bool:
+    return (f"reconcile:{anchor}:start" in text
+            or f"reconcile:{anchor}:end" in text)

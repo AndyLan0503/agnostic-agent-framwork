@@ -96,7 +96,7 @@ class SyncTest(unittest.TestCase):
             result = sync(repo.root)
             state = load(repo.root)
             self.assertIsNotNone(state)
-            rec = state.records["managed_add.md#add-behavior::calc.py"]
+            rec = state.records["managed_add.md#add-behavior::calc.py::def add"]
             self.assertEqual(rec.last_verdict, IS)
             self.assertTrue(rec.doc_hash.startswith("sha256:"))
             self.assertTrue(rec.code_hash.startswith("sha256:"))

@@ -72,7 +72,7 @@ class ApplySafeTest(unittest.TestCase):
             code_after_edit = repo.read("calc.py")
             gen = StubGenerator()
             result = apply(repo.root, generator=gen)
-            self.assertIn("managed_add.md#add-behavior::calc.py",
+            self.assertIn("managed_add.md#add-behavior::calc.py::def add",
                           result.applied)
             self.assertTrue(result.ok)
             # Doc region rewritten to the generator output.
@@ -115,7 +115,7 @@ class ApplyUnsafeDirectionTest(unittest.TestCase):
             result = apply(repo.root, generator=gen)
             self.assertFalse(result.ok)
             refused = {r.entry_id for r in result.refused}
-            self.assertIn("spec.md#spec::calc.py", refused)
+            self.assertIn("spec.md#spec::calc.py::def add", refused)
             # Neither code nor the prescriptive doc was written.
             self.assertEqual(repo.read("calc.py"), after_edit)
             self.assertEqual(repo.read("spec.md"), doc_before)
