@@ -1,4 +1,0 @@
-# Paths that are not a governed corpus (fnmatch/prefix, repo-relative).
-# reconcile's own test fixtures carry adversarial frontmatter (path escapes,
-# missing direction) that exist only to exercise the tool - not real docs.
-framework/scripts/reconcile/tests

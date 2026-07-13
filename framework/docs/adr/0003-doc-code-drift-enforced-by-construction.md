@@ -31,7 +31,7 @@ mechanism for the collaboration-artifacts convention in the AGENTS.md map.
 Model, three states from Terraform:
 
 - **desired** - prescriptive docs (specs, plans); code should conform to them.
-- **recorded** - a `.docstate` lockfile: per-binding content hashes plus the
+- **recorded** - a `knowform.lock` lockfile: per-binding content hashes plus the
   last judged verdict.
 - **actual** - the code.
 

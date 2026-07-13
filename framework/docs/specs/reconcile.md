@@ -25,7 +25,7 @@ later milestone inherits. Design only - no code here.
   - Given a `doc-is-truth` binding whose code diverged, When `apply` runs, Then
     it refuses to touch code and surfaces the conflict for a human.
 - **In scope (M0)** - the schema: frontmatter fields, `direction` enum,
-  `.docstate` lockfile format, graph node/edge types.
+  `knowform.lock` lockfile format, graph node/edge types.
 - **Out of scope (M0)** - detector, lockfile writer, apply, CI wiring, semantic
   graph. Those are M1-M5.
 - **Guardrails touched** - collaboration-artifacts convention (new enforcement
@@ -38,7 +38,7 @@ later milestone inherits. Design only - no code here.
     uses `git diff` against a base ref (default: working tree vs `HEAD`) as the
     changed-set signal. A binding whose doc span and code region both fall
     outside the diff is `in-sync` with zero LLM calls. Normalized-span hashes
-    are still computed and emitted so M2 can seed `.docstate`.
+    are still computed and emitted so M2 can seed `knowform.lock`.
   - *Structural layer dogfoods on Python via the stdlib `ast` module* -
     tree-sitter/LSP are not stdlib and are deferred. A `code_anchor` that names
     a Python symbol resolves to that symbol's line span and its `IMPORTS`/
@@ -64,7 +64,7 @@ schema. Non-goal: any runtime behavior.
 | State | What | Where |
 |---|---|---|
 | desired | prescriptive docs (code should conform) | `.md` with `direction: doc-is-truth` |
-| recorded | last-blessed hashes + verdict | `.docstate` lockfile |
+| recorded | last-blessed hashes + verdict | `knowform.lock` lockfile |
 | actual | the code | working tree / git |
 
 Drift = recorded vs actual. Plan = desired vs recorded.
@@ -115,7 +115,7 @@ A binding ties a **doc region** to a **code region**; the lockfile hashes each.
 
 Both resolve to a normalized text span whose hash is the unit of drift.
 
-### `.docstate` lockfile (recorded state)
+### `knowform.lock` lockfile (recorded state)
 
 One file at repo root, JSON, human-diffable, machine-written by `sync`/`apply`
 (M2+). Never hand-edited in practice, but greppable.
