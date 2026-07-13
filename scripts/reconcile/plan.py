@@ -7,6 +7,7 @@ and zero tokens are spent.
 """
 from __future__ import annotations
 
+import fnmatch
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -55,24 +56,52 @@ class Plan:
 _VENDORED = {"node_modules", "vendor", "__pycache__", "site-packages",
              "dist", "build", "target", "venv"}
 
+IGNORE_FILE = ".reconcileignore"
 
-def _pruned_walk(root: Path, suffix: str) -> list[Path]:
-    """rglob for `suffix`, skipping hidden (leading `.`) and vendored dirs."""
+
+def load_ignore(root: Path) -> list[str]:
+    """Repo-root `.reconcileignore`: fnmatch/prefix patterns (POSIX, repo-
+    relative) for paths that are not a governed corpus - test fixtures,
+    vendored docs. One per line; `#` comments and blanks ignored."""
+    f = root / IGNORE_FILE
+    if not f.exists():
+        return []
+    out: list[str] = []
+    for line in f.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            out.append(line.rstrip("/"))
+    return out
+
+
+def _ignored(rel: Path, patterns: list[str]) -> bool:
+    s = rel.as_posix()
+    return any(s == p or s.startswith(p + "/") or fnmatch.fnmatch(s, p)
+               for p in patterns)
+
+
+def _pruned_walk(root: Path, suffix: str,
+                 ignore: list[str] | None = None) -> list[Path]:
+    """rglob for `suffix`, skipping hidden (leading `.`), vendored, and
+    `.reconcileignore`d dirs/files."""
+    ignore = ignore or []
     out: list[Path] = []
     stack = [root]
     while stack:
         for entry in sorted(stack.pop().iterdir()):
+            rel = entry.relative_to(root)
             if entry.is_dir():
-                if entry.name.startswith(".") or entry.name in _VENDORED:
+                if (entry.name.startswith(".") or entry.name in _VENDORED
+                        or _ignored(rel, ignore)):
                     continue
                 stack.append(entry)
-            elif entry.suffix == suffix:
-                out.append(entry.relative_to(root))
+            elif entry.suffix == suffix and not _ignored(rel, ignore):
+                out.append(rel)
     return sorted(out)
 
 
-def _managed_docs(root: Path) -> list[Path]:
-    return _pruned_walk(root, ".md")
+def _managed_docs(root: Path, ignore: list[str]) -> list[Path]:
+    return _pruned_walk(root, ".md", ignore)
 
 
 @dataclass
@@ -96,14 +125,16 @@ class Resolution:
     errors: list[PlanEntry] = field(default_factory=list)
     doc_nodes: list[DocNode] = field(default_factory=list)
     py_files: set[Path] = field(default_factory=set)
+    ignore: list[str] = field(default_factory=list)
 
 
 def resolve_bindings(root: Path) -> Resolution:
     """Resolve every managed doc's bindings without any git/judge/lockfile
     signal - pure region resolution and hashing (read-only)."""
     root = Path(root).resolve()
-    out = Resolution()
-    for doc_path in _managed_docs(root):
+    ignore = load_ignore(root)
+    out = Resolution(ignore=ignore)
+    for doc_path in _managed_docs(root, ignore):
         text = (root / doc_path).read_text(encoding="utf-8")
         managed = parse_frontmatter(text)
         if managed is None:
@@ -157,7 +188,7 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
     doc_nodes = res.doc_nodes
     py_files = res.py_files
 
-    graph = build_graph(root, doc_nodes, py_files | _all_py(root))
+    graph = build_graph(root, doc_nodes, py_files | _all_py(root, res.ignore))
     changed_code = _changed_code_keys(graph, changed)
     frontier_keys = frontier(graph, changed_code, depth)
 
@@ -225,8 +256,8 @@ def _safe_hash(root: Path, region: Region) -> str | None:
         return None
 
 
-def _all_py(root: Path) -> set[Path]:
-    return set(_pruned_walk(root, ".py"))
+def _all_py(root: Path, ignore: list[str]) -> set[Path]:
+    return set(_pruned_walk(root, ".py", ignore))
 
 
 def _changed_code_keys(graph, changed: ChangedSet) -> set[str]:

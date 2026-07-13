@@ -41,7 +41,7 @@ in here during adoption:
 | No force-push, no hand deploys | Deny-listed in harness config; branch protection on the remote |
 | Green before merge | `make test` run locally before any commit; `<fill in: CI re-running make test on every PR>` |
 | Unattended runs stay local | gnhf settings profile deny-lists everything remote/external; `scripts/gnhf_guard.py` hook confines edits to the repo and blocks network commands even with prompts bypassed (docs/adr/0002) |
-| Docs stay in sync with code | `reconcile plan` (`scripts/reconcile/`) detects doc↔code drift on the diff; PR check once the judge is trusted (docs/adr/0003, M4) |
+| Docs stay in sync with code | `make reconcile` (`scripts/reconcile/`) reports doc↔code drift from recorded hashes; non-blocking until the judge is trusted, then a PR check (docs/adr/0003) |
 | Project invariants | `<fill in: tests, DB constraints, CI checks that defend each invariant>` |
 
 When adding a guardrail, wire its mechanism in the same change.
@@ -75,6 +75,7 @@ nobody retypes pipelines by hand.
 - `make setup` - one-time local setup
 - `make test` - full verification (lint, types, tests); the gate everywhere
 - `make e2e` - black-box end-to-end suite against the shippable artifact
+- `make reconcile` - report doc↔code drift (read-only; non-blocking)
 - `<fill in: run, seed, logs, ... per project>`
 
 ## Roles and workflow

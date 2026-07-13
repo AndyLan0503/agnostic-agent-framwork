@@ -1,0 +1,14 @@
+#!/bin/sh
+# Optional sample doc↔code drift hook.
+#
+# The framework ships NO hooks or CI (docs/adr/0002); you wire your own. To
+# opt in, copy this file to .git/hooks/pre-commit and make it executable:
+#
+#   cp scripts/reconcile/pre-commit.sample .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# It runs the read-only drift report on every commit. It is advisory: the
+# report never fails the commit while the judge's precision is unproven
+# (docs/adr/0003 M4). Once you trust the judge, replace the line below with a
+# blocking check of your choosing.
+make reconcile
