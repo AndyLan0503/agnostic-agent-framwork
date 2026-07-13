@@ -32,6 +32,25 @@ later milestone inherits. Design only - no code here.
   row); no autonomous writes to code (apply is safe-direction only).
 - **Open questions** - resolved in docs/adr/0003 (explicit direction; anchored
   region + hash bindings; Python).
+- **Assumed answers (M1 detector)** - decided conservatively for the
+  `reconcile plan` slice, no human gate:
+  - *Recorded state is not yet available* (lockfile writer is M2), so Tier-0
+    uses `git diff` against a base ref (default: working tree vs `HEAD`) as the
+    changed-set signal. A binding whose doc span and code region both fall
+    outside the diff is `in-sync` with zero LLM calls. Normalized-span hashes
+    are still computed and emitted so M2 can seed `.docstate`.
+  - *Structural layer dogfoods on Python via the stdlib `ast` module* -
+    tree-sitter/LSP are not stdlib and are deferred. A `code_anchor` that names
+    a Python symbol resolves to that symbol's line span and its `IMPORTS`/
+    `CALLS` neighbors; anything else (non-Python file, unresolved anchor)
+    degrades to the whole file. Precision-over-recall: an unresolved anchor
+    widens scope, never narrows it silently.
+  - *The judge is an injected seam.* With no judge configured the plan lists
+    frontier bindings as `needs-judge` and still costs zero tokens; a concrete
+    `AnthropicJudge` adapter is provided but lazy-imports its client and is
+    never exercised by the tests.
+  - *`plan` is strictly read-only* - it emits a drift plan and touches no files
+    (no lockfile, sync, apply, or CI wiring; those are M2+).
 
 ## Spec
 
