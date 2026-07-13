@@ -156,3 +156,48 @@ def _parse_verdict(message: object) -> Verdict:
         rationale=data.get("rationale", ""),
         confidence=data.get("confidence"),
     )
+
+
+class Generator(Protocol):
+    """The safe-direction prose seam (docs/adr/0003, M3). Returns fresh
+    descriptive prose for a `code-is-truth` doc region, from the bound code."""
+    def __call__(self, item: JudgeInput) -> str: ...
+
+
+_GEN_PROMPT = (
+    "Rewrite the documentation region so it accurately describes the code it "
+    "governs. Return ONLY the replacement prose - no fences, no preamble, no "
+    "code. Keep it as short as the current region.\n\n"
+    "CURRENT DOC ({doc_path}):\n{doc}\n\n"
+    "CODE ({code_path}), signatures {sigs}:\n{code}"
+)
+
+
+@dataclass
+class AnthropicGenerator:
+    """Concrete safe-direction generator. Lazy-imports `anthropic` so the
+    subpackage imports without the dep and tests never reach it."""
+    model: str = "claude-opus-4-8"
+
+    def __call__(self, item: JudgeInput) -> str:
+        import anthropic  # lazy: never imported at module top level
+
+        client = anthropic.Anthropic()
+        message = client.messages.create(
+            model=self.model,
+            max_tokens=1024,
+            messages=[{
+                "role": "user",
+                "content": _GEN_PROMPT.format(
+                    doc_path=item.doc_path,
+                    doc=item.doc_claim,
+                    code_path=item.code_path,
+                    sigs=", ".join(item.signatures) or "n/a",
+                    code=item.code_text,
+                ),
+            }],
+        )
+        text = ""
+        for block in getattr(message, "content", []):
+            text += getattr(block, "text", "")
+        return text.strip()

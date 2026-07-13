@@ -174,3 +174,25 @@ def fence_span(text: str, anchor: str) -> tuple[int, int] | None:
     if end - start <= 1:
         return (start + 1, start)  # empty region
     return (start + 1, end - 1)
+
+
+def replace_fenced_region(text: str, anchor: str, new_inner: str) -> str | None:
+    """Replace the lines BETWEEN the anchor's fences with `new_inner`, leaving
+    the fence lines and the rest of the doc intact. Returns None when the
+    fences are absent - apply must never write a region it cannot target."""
+    start_re = re.compile(
+        rf"<!--\s*reconcile:{re.escape(anchor)}:start\s*-->")
+    end_re = re.compile(
+        rf"<!--\s*reconcile:{re.escape(anchor)}:end\s*-->")
+    lines = text.split("\n")
+    start = end = None
+    for i, line in enumerate(lines):
+        if start is None and start_re.search(line):
+            start = i
+        elif start is not None and end_re.search(line):
+            end = i
+            break
+    if start is None or end is None:
+        return None
+    lines[start + 1:end] = new_inner.split("\n") if new_inner else []
+    return "\n".join(lines)

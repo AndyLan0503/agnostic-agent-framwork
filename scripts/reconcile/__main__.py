@@ -1,7 +1,9 @@
-"""CLI: `python3 -m reconcile {plan|sync}`.
+"""CLI: `python3 -m reconcile {plan|sync|apply}`.
 
 - `plan`  - report doc↔code drift (read-only; no judge wired, zero tokens).
 - `sync`  - re-bless recorded hashes into `.docstate`.
+- `apply` - regenerate descriptive prose in the safe direction only; never
+            writes code, refuses + exits nonzero on the unsafe direction.
 """
 from __future__ import annotations
 
@@ -10,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 
+from .apply import apply
 from .plan import plan
 from .sync import sync
 
@@ -44,6 +47,21 @@ def _cmd_sync(args) -> int:
     return 0
 
 
+def _cmd_apply(args) -> int:
+    generator = None
+    if args.anthropic:
+        from .judge import AnthropicGenerator
+        generator = AnthropicGenerator()
+    result = apply(Path(args.root), generator=generator)
+    for a in result.applied:
+        print(f"applied   {a}")
+    for r in result.refused:
+        print(f"refused   {r.entry_id}: {r.reason}", file=sys.stderr)
+    for s in result.surfaced:
+        print(f"surfaced  {s.entry_id}: {s.reason}", file=sys.stderr)
+    return 0 if result.ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="reconcile")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -59,6 +77,12 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("sync", help="re-bless recorded hashes into .docstate")
     s.add_argument("--root", default=".", help="repo root to scan")
     s.set_defaults(func=_cmd_sync)
+
+    a = sub.add_parser("apply", help="regenerate prose, safe direction only")
+    a.add_argument("--root", default=".", help="repo root to scan")
+    a.add_argument("--anthropic", action="store_true",
+                   help="wire the live Anthropic generator (opt-in; network)")
+    a.set_defaults(func=_cmd_apply)
 
     args = parser.parse_args(argv)
     return args.func(args)

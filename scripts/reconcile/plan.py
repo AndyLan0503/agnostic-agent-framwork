@@ -162,48 +162,52 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
     frontier_keys = frontier(graph, changed_code, depth)
 
     for r in resolved:
+        # Recorded state (M2), when present, is the authoritative drift signal:
+        # `Drift = recorded vs actual` (docs/specs/reconcile.md). It supersedes
+        # the M1 git-diff Tier-0 gate, so a re-blessed binding reads in-sync
+        # even while its code edit is still uncommitted. Unrecorded bindings
+        # (no lockfile, or new since the last `sync`) fall back to git-diff +
+        # structural blast-radius, widening to the frontier they cannot clear.
+        record = recorded.get(r.entry_id) if recorded else None
+        if record is not None:
+            structural = classify(record.doc_hash != r.doc_hash,
+                                  record.code_hash != r.code_hash)
+            if structural is VerdictKind.IN_SYNC:
+                entries.append(_entry(r, VerdictKind.IN_SYNC,
+                                      on_frontier=False))
+            elif judge is not None:
+                entries.append(_judged(root, r, judge))
+            else:
+                entries.append(_entry(r, structural, on_frontier=True))
+            continue
+
         doc_changed = changed.overlaps(
             r.doc_region.path, r.doc_region.start, r.doc_region.end)
         code_changed = changed.overlaps(
             r.code_region.path, r.code_region.start, r.code_region.end)
         # No diff signal (not a repo / unknown ref) cannot prove unchanged, so
         # every binding is on the frontier (widen, never narrow).
-        git_frontier = (not changed.available or r.entry_id in frontier_keys
-                        or code_changed or doc_changed)
-
-        # Recorded state (M2): drift is recorded-vs-actual hashes. When a
-        # binding is blessed, its hashes are the authoritative signal; the
-        # git-diff/blast-radius frontier is unioned in so transitive change
-        # still surfaces before the first `sync` (precision handled by judge).
-        record = recorded.get(r.entry_id) if recorded else None
-        structural = None
-        if record is not None:
-            structural = classify(record.doc_hash != r.doc_hash,
-                                  record.code_hash != r.code_hash)
-        on_frontier = git_frontier or (
-            structural is not None and structural is not VerdictKind.IN_SYNC)
+        on_frontier = (not changed.available or r.entry_id in frontier_keys
+                       or code_changed or doc_changed)
 
         if not on_frontier:
             entries.append(_entry(r, VerdictKind.IN_SYNC, on_frontier=False))
-            continue
-
-        if judge is not None:
-            item = build_frontier(root, r.key, r.direction, r.binding,
-                                  r.doc_region, r.code_region)
-            verdict = judge(item)
-            entries.append(_entry(r, verdict.verdict, on_frontier=True,
-                                  rationale=verdict.rationale))
-            continue
-
-        # No judge: emit the free directional verdict when recorded hashes
-        # pin it down, else `needs-judge`.
-        free = (structural if structural and structural is not
-                VerdictKind.IN_SYNC else VerdictKind.NEEDS_JUDGE)
-        entries.append(_entry(r, free, on_frontier=True))
+        elif judge is not None:
+            entries.append(_judged(root, r, judge))
+        else:
+            entries.append(_entry(r, VerdictKind.NEEDS_JUDGE, on_frontier=True))
 
     entries.sort(key=lambda e: e.entry_id)
     return Plan(base=base, diff_available=changed.available,
                 judged=judge is not None, entries=entries)
+
+
+def _judged(root: Path, r: _Resolved, judge: Judge) -> PlanEntry:
+    item = build_frontier(root, r.key, r.direction, r.binding,
+                          r.doc_region, r.code_region)
+    verdict = judge(item)
+    return _entry(r, verdict.verdict, on_frontier=True,
+                  rationale=verdict.rationale)
 
 
 def _entry(r: _Resolved, verdict: VerdictKind, on_frontier: bool,
