@@ -8,8 +8,8 @@
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-10s %s\n", $$1, $$2}'
 
-setup: ## One-time local setup (fill in per project)
-	@echo "no setup defined yet - see AGENTS.md 'Commands'"
+setup: ## One-time local setup (extend per project)
+	pip install knowform
 
 test: ## Full verification - the gate before every commit (extend per project)
 	python3 -m unittest discover -s framework/scripts -p "test_*.py"
@@ -21,4 +21,4 @@ adopt: ## Copy the scaffold into TARGET, never overwriting (make adopt TARGET=/p
 	python3 framework/scripts/adopt.py $(TARGET)
 
 reconcile: ## Report doc↔code drift (read-only; non-blocking until the judge is trusted, framework/docs/adr/0003 M4)
-	PYTHONPATH=framework/scripts python3 -m reconcile plan --format summary
+	knowform plan --format summary
