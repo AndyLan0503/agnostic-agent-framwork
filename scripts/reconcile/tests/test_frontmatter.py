@@ -66,6 +66,30 @@ class FrontmatterTest(unittest.TestCase):
         self.assertEqual(doc.bindings[1].code_anchor, "class Foo")
 
 
+class InlineHashTest(unittest.TestCase):
+    def test_hash_in_quoted_value_preserved(self):
+        text = ('---\nreconcile:\n  direction: code-is-truth\n'
+                '  bindings:\n    - doc_anchor: a\n'
+                '      governs: "a#b.py"\n---\n')
+        doc = parse_frontmatter(text)
+        self.assertEqual(doc.bindings[0].governs, "a#b.py")
+
+    def test_hash_in_unquoted_value_preserved(self):
+        # `#` not preceded by whitespace is part of the value, not a comment.
+        text = ('---\nreconcile:\n  direction: code-is-truth\n'
+                '  bindings:\n    - doc_anchor: a\n'
+                '      governs: a#b.py\n---\n')
+        doc = parse_frontmatter(text)
+        self.assertEqual(doc.bindings[0].governs, "a#b.py")
+
+    def test_trailing_comment_still_stripped(self):
+        text = ('---\nreconcile:\n  direction: code-is-truth  # a note\n'
+                '  bindings:\n    - doc_anchor: a\n'
+                '      governs: x.py\n---\n')
+        doc = parse_frontmatter(text)
+        self.assertEqual(doc.direction, Direction.CODE_IS_TRUTH)
+
+
 class FenceTest(unittest.TestCase):
     def test_fenced_span_excludes_fences(self):
         text = read("managed_add.md")

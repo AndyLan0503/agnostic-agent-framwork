@@ -129,7 +129,12 @@ One file at repo root, JSON, human-diffable, machine-written by `sync`/`apply`
 }
 ```
 
-- Key = `<doc-path>#<doc_anchor>`, stable across content edits.
+- Key = `<doc-path>#<doc_anchor>`, stable across content edits. **Schema
+  follow-up (M2):** when a binding's `governs` globs multiple files, this key
+  is not unique - each matched file is a distinct binding row. The lockfile key
+  must incorporate the governed file (e.g. `<doc-path>#<doc_anchor>::<governed-file>`)
+  so glob-expanded rows do not collide. M1's `plan` already disambiguates via a
+  per-(binding, governed-file) `entry_id`.
 - `doc_hash` / `code_hash` - normalized-span hashes; the Tier-0 gate compares
   these against `actual`.
 - `last_verdict` - `in-sync | doc-drift | code-drift | conflict | unjudged`.

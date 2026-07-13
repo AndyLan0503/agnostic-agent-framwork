@@ -39,8 +39,12 @@ def _strip(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] in "\"'" and value[-1] == value[0]:
         return value[1:-1]
-    # Drop trailing inline comment on unquoted scalars.
-    return value.split("#", 1)[0].strip()
+    # Drop a trailing inline comment only when `#` follows whitespace, so a
+    # `#` inside an unquoted scalar (e.g. `a#b.py`) is preserved.
+    comment = re.search(r"\s#", value)
+    if comment:
+        value = value[:comment.start()]
+    return value.strip()
 
 
 def _indent(line: str) -> int:

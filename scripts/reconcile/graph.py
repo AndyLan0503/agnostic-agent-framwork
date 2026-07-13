@@ -2,9 +2,10 @@
 
 Rebuilt in memory each run, never persisted (docs/adr/0003 - graph
 disposable). Nodes: DocRegion, CodeRegion. Edges: GOVERNS (doc→code),
-IMPORTS/CALLS (code→code, from `ast`). From CodeRegions overlapping the git
-diff, walk IMPORTS/CALLS to a bounded depth, then follow GOVERNS backward to
-the DocRegions at risk - the frontier that would reach the judge.
+IMPORTS/CALLS (code→code, dependent→dependency, from `ast`). From CodeRegions
+overlapping the git diff, walk those edges *in reverse* to the bounded set of
+dependents (callers/importers), then follow GOVERNS to the DocRegions
+governing that set - the frontier that would reach the judge.
 """
 from __future__ import annotations
 
@@ -12,13 +13,18 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .regions import Region
+from .regions import Region, symbol_start
 
 
 @dataclass(frozen=True)
 class DocNode:
-    key: str                # <doc-path>#<anchor>
+    key: str                # <doc-path>#<anchor> (doc-anchor identity)
     region: Region
+    node_id: str = ""       # unique per (binding, governed-file); defaults to key
+
+    def __post_init__(self) -> None:
+        if not self.node_id:
+            object.__setattr__(self, "node_id", self.key)
 
 
 @dataclass(frozen=True)
@@ -38,21 +44,29 @@ class CodeNode:
 class Graph:
     docs: list[DocNode] = field(default_factory=list)
     code: dict[str, CodeNode] = field(default_factory=dict)
-    governs: dict[str, str] = field(default_factory=dict)  # doc key -> code key
-    edges: dict[str, set[str]] = field(default_factory=dict)  # code -> code keys
+    governs: dict[str, str] = field(default_factory=dict)  # doc node_id -> code key
+    edges: dict[str, set[str]] = field(default_factory=dict)  # dep -> deps
+    rev_edges: dict[str, set[str]] = field(default_factory=dict)  # dep -> dependents
 
     def add_edge(self, src: str, dst: str) -> None:
+        """Record a dependent→dependency edge (src depends on dst)."""
         if src != dst:
             self.edges.setdefault(src, set()).add(dst)
+            self.rev_edges.setdefault(dst, set()).add(src)
 
-    def reachable(self, seeds: set[str], depth: int) -> set[str]:
-        """Code keys reachable from seeds within `depth` IMPORTS/CALLS hops."""
+    def dependents(self, seeds: set[str], depth: int) -> set[str]:
+        """Code keys that depend on the seeds within `depth` hops.
+
+        Walks IMPORTS/CALLS edges in reverse: from a changed symbol to its
+        callers/importers, transitively. The seeds themselves are included so a
+        directly-changed governed symbol is always in the result.
+        """
         seen = set(seeds)
         frontier = set(seeds)
         for _ in range(max(0, depth)):
             nxt: set[str] = set()
             for node in frontier:
-                nxt |= self.edges.get(node, set()) - seen
+                nxt |= self.rev_edges.get(node, set()) - seen
             if not nxt:
                 break
             seen |= nxt
@@ -67,7 +81,7 @@ def _symbol_index(tree: ast.Module) -> list[tuple[str, int, int]]:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef,
                              ast.ClassDef)):
             out.append((node.name,
-                        node.lineno,
+                        symbol_start(node),
                         getattr(node, "end_lineno", node.lineno)))
     return out
 
@@ -127,7 +141,7 @@ def build_graph(root: Path, doc_nodes: list[DocNode],
     for doc in doc_nodes:
         code_key = _governed_code_key(doc, graph)
         if code_key:
-            graph.governs[doc.key] = code_key
+            graph.governs[doc.node_id] = code_key
     return graph
 
 
@@ -166,8 +180,9 @@ def _governed_code_key(doc: DocNode, graph: Graph) -> str | None:
 
 def frontier(graph: Graph, changed_code_keys: set[str],
              depth: int) -> set[str]:
-    """Doc keys at risk: reachable from changed code within `depth`, via
-    GOVERNS backward. A directly-changed governed region is included."""
-    reach = graph.reachable(changed_code_keys, depth)
-    return {doc.key for doc in graph.docs
-            if graph.governs.get(doc.key) in reach}
+    """Doc keys at risk: docs governing {changed code ∪ its transitive
+    dependents within `depth`}. A directly-changed governed region is included
+    (its own key is a seed)."""
+    at_risk = graph.dependents(changed_code_keys, depth)
+    return {doc.node_id for doc in graph.docs
+            if graph.governs.get(doc.node_id) in at_risk}

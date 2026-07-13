@@ -16,12 +16,12 @@ class GraphTest(unittest.TestCase):
                    if "calc.py::add" in dsts}
         self.assertIn("calc.py::scaled_add", callers)
 
-    def test_reachable_bounded_by_depth(self):
+    def test_dependents_bounded_by_depth(self):
         graph = build_graph(FIX, [], {Path("calc.py")})
-        seed = {"calc.py::scaled_add"}
-        # add is one CALLS hop away.
-        self.assertIn("calc.py::add", graph.reachable(seed, 1))
-        self.assertNotIn("calc.py::add", graph.reachable(seed, 0))
+        seed = {"calc.py::add"}
+        # scaled_add depends on add (calls it) -> is a dependent one hop away.
+        self.assertIn("calc.py::scaled_add", graph.dependents(seed, 1))
+        self.assertNotIn("calc.py::scaled_add", graph.dependents(seed, 0))
 
     def test_governs_maps_doc_to_symbol(self):
         add_region = Region(Path("calc.py"), 4, 5)  # def add span
@@ -29,12 +29,31 @@ class GraphTest(unittest.TestCase):
         graph = build_graph(FIX, [doc], {Path("calc.py")})
         self.assertEqual(graph.governs["d#add"], "calc.py::add")
 
-    def test_frontier_follows_governs_backward(self):
+    def test_frontier_follows_dependents_then_governs(self):
+        # A doc binds `scaled_add`; changing `add` (which scaled_add calls)
+        # must reach scaled_add's doc, because scaled_add depends on add.
+        scaled_region = Region(Path("calc.py"), 8, 10)  # def scaled_add span
+        doc = DocNode(key="d#scaled", region=scaled_region)
+        graph = build_graph(FIX, [doc], {Path("calc.py")})
+        reached = frontier(graph, {"calc.py::add"}, depth=1)
+        self.assertIn("d#scaled", reached)
+
+    def test_frontier_does_not_pull_unrelated_callee(self):
+        # A doc binds `add`; changing only a *caller* (scaled_add) must NOT
+        # pull in the unrelated callee's doc. `add` does not depend on
+        # scaled_add, so its doc is not at risk from that change.
         add_region = Region(Path("calc.py"), 4, 5)
         doc = DocNode(key="d#add", region=add_region)
         graph = build_graph(FIX, [doc], {Path("calc.py")})
-        # Changing scaled_add reaches add (depth 1) -> the governed doc.
-        reached = frontier(graph, {"calc.py::scaled_add"}, depth=1)
+        reached = frontier(graph, {"calc.py::scaled_add"}, depth=2)
+        self.assertNotIn("d#add", reached)
+
+    def test_directly_changed_governed_symbol_on_frontier(self):
+        # Changing the governed symbol itself must reach its doc (seed).
+        add_region = Region(Path("calc.py"), 4, 5)
+        doc = DocNode(key="d#add", region=add_region)
+        graph = build_graph(FIX, [doc], {Path("calc.py")})
+        reached = frontier(graph, {"calc.py::add"}, depth=0)
         self.assertIn("d#add", reached)
 
     def test_graph_writes_nothing(self):

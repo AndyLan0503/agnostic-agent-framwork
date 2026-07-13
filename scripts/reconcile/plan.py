@@ -22,6 +22,7 @@ from .regions import (
 
 @dataclass
 class PlanEntry:
+    entry_id: str                # unique per (binding, governed-file)
     key: str                     # <doc-path>#<doc_anchor>
     direction: str | None
     governs: str
@@ -49,12 +50,32 @@ class Plan:
         }
 
 
+_VENDORED = {"node_modules", "vendor", "__pycache__", "site-packages",
+             "dist", "build", "target", "venv"}
+
+
+def _pruned_walk(root: Path, suffix: str) -> list[Path]:
+    """rglob for `suffix`, skipping hidden (leading `.`) and vendored dirs."""
+    out: list[Path] = []
+    stack = [root]
+    while stack:
+        for entry in sorted(stack.pop().iterdir()):
+            if entry.is_dir():
+                if entry.name.startswith(".") or entry.name in _VENDORED:
+                    continue
+                stack.append(entry)
+            elif entry.suffix == suffix:
+                out.append(entry.relative_to(root))
+    return sorted(out)
+
+
 def _managed_docs(root: Path) -> list[Path]:
-    return [p.relative_to(root) for p in sorted(root.rglob("*.md"))]
+    return _pruned_walk(root, ".md")
 
 
 @dataclass
 class _Resolved:
+    entry_id: str
     key: str
     direction: Direction
     governs: str
@@ -81,24 +102,38 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
             continue  # unmanaged doc -> ignored
         if managed.error:
             entries.append(PlanEntry(
+                entry_id=f"{doc_path}#<error>",
                 key=f"{doc_path}#<error>", direction=None, governs="",
                 doc_hash=None, code_hash=None,
                 verdict="error", on_frontier=False, error=managed.error))
             continue
         for binding in managed.bindings:
             doc_region = resolve_doc_region(root, doc_path, binding)
-            for gov_file in resolve_governed_files(root, binding.governs):
+            for gov in resolve_governed_files(root, binding.governs):
+                key = f"{doc_path}#{binding.doc_anchor}"
+                if gov.error is not None:
+                    entries.append(PlanEntry(
+                        entry_id=f"{key}::{binding.governs}",
+                        key=key, direction=managed.direction.value,
+                        governs=binding.governs, doc_hash=None,
+                        code_hash=None, verdict="error", on_frontier=False,
+                        error=gov.error))
+                    continue
+                gov_file = gov.path
                 code_region = resolve_code_region(
                     root, gov_file, binding.code_anchor)
-                key = f"{doc_path}#{binding.doc_anchor}"
+                # Fold the governed file into the identity so a glob matching
+                # multiple files yields distinct, non-colliding nodes/entries.
+                entry_id = f"{key}::{gov_file}"
                 doc_hash = _safe_hash(root, doc_region)
                 code_hash = _safe_hash(root, code_region)
                 resolved.append(_Resolved(
-                    key=key, direction=managed.direction,
+                    entry_id=entry_id, key=key, direction=managed.direction,
                     governs=str(gov_file), doc_region=doc_region,
                     code_region=code_region, binding=binding,
                     doc_hash=doc_hash, code_hash=code_hash))
-                doc_nodes.append(DocNode(key=key, region=code_region))
+                doc_nodes.append(DocNode(
+                    key=key, region=code_region, node_id=entry_id))
                 if (root / gov_file).suffix == ".py":
                     py_files.add(gov_file)
 
@@ -113,7 +148,7 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
             r.code_region.path, r.code_region.start, r.code_region.end)
         # No diff signal (not a repo / unknown ref) cannot prove unchanged, so
         # every binding is on the frontier (widen, never narrow).
-        on_frontier = (not changed.available or r.key in frontier_keys
+        on_frontier = (not changed.available or r.entry_id in frontier_keys
                        or code_changed or doc_changed)
 
         if not on_frontier:
@@ -129,7 +164,7 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
         entries.append(_entry(r, verdict.verdict, on_frontier=True,
                               rationale=verdict.rationale))
 
-    entries.sort(key=lambda e: e.key)
+    entries.sort(key=lambda e: e.entry_id)
     return Plan(base=base, diff_available=changed.available,
                 judged=judge is not None, entries=entries)
 
@@ -137,8 +172,8 @@ def plan(root: Path, base: str = "HEAD", judge: Judge | None = None,
 def _entry(r: _Resolved, verdict: VerdictKind, on_frontier: bool,
            rationale: str = "") -> PlanEntry:
     return PlanEntry(
-        key=r.key, direction=r.direction.value, governs=r.governs,
-        doc_hash=r.doc_hash, code_hash=r.code_hash,
+        entry_id=r.entry_id, key=r.key, direction=r.direction.value,
+        governs=r.governs, doc_hash=r.doc_hash, code_hash=r.code_hash,
         verdict=verdict.value, on_frontier=on_frontier, rationale=rationale)
 
 
@@ -150,8 +185,7 @@ def _safe_hash(root: Path, region: Region) -> str | None:
 
 
 def _all_py(root: Path) -> set[Path]:
-    return {p.relative_to(root) for p in root.rglob("*.py")
-            if "__pycache__" not in p.parts}
+    return set(_pruned_walk(root, ".py"))
 
 
 def _changed_code_keys(graph, changed: ChangedSet) -> set[str]:

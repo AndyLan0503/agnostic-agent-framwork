@@ -62,13 +62,57 @@ def resolve_doc_region(root: Path, doc_path: Path, binding: Binding) -> Region:
     return Region(doc_path, start, max(start, end))
 
 
-def resolve_governed_files(root: Path, governs: str) -> list[Path]:
-    """`governs` is a file or glob relative to root. Returns matching files,
-    or the literal path (even if missing) so the plan can surface it."""
+@dataclass(frozen=True)
+class GovernedFile:
+    """One resolved governed target: either a repo-relative `path`, or an
+    `error` when the `governs` value is malformed or escapes root."""
+    path: Path | None
+    error: str | None = None
+
+
+def _contained(root: Path, candidate: Path) -> bool:
+    """True iff `candidate` resolves to a path inside `root` (symlinks
+    followed). Contains resolution to the repo (docs/adr/0003 precision +
+    path-containment)."""
+    try:
+        resolved = candidate.resolve()
+        return resolved.is_relative_to(root.resolve())
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
+def resolve_governed_files(root: Path, governs: str) -> list[GovernedFile]:
+    """`governs` is a file or glob relative to root. Returns matching files
+    (repo-relative), or the literal path (even if missing) so the plan can
+    surface it. An absolute / `..` / symlink-escaping `governs` is contained
+    to root: it surfaces as an `error` entry rather than crashing or reading
+    outside the repo."""
+    root = root.resolve()
+    if Path(governs).is_absolute():
+        return [GovernedFile(None, error=f"governs escapes root: {governs!r}")]
+
     matches = sorted(glob.glob(str(root / governs), recursive=True))
-    if matches:
-        return [Path(m).relative_to(root) for m in matches]
-    return [Path(governs)]
+    if not matches:
+        # Literal (possibly missing) path, still contained to root.
+        literal = Path(governs)
+        if not _contained(root, root / literal) or literal.is_symlink():
+            return [GovernedFile(
+                None, error=f"governs escapes root: {governs!r}")]
+        return [GovernedFile(literal)]
+
+    out: list[GovernedFile] = []
+    for m in matches:
+        mp = Path(m)
+        if mp.is_symlink() or not _contained(root, mp):
+            out.append(GovernedFile(
+                None, error=f"governs escapes root: {m!r}"))
+            continue
+        try:
+            out.append(GovernedFile(mp.resolve().relative_to(root)))
+        except ValueError:
+            out.append(GovernedFile(
+                None, error=f"governs escapes root: {m!r}"))
+    return out
 
 
 def resolve_code_region(root: Path, file_path: Path,
@@ -89,7 +133,16 @@ def resolve_code_region(root: Path, file_path: Path,
     if node is None:
         return whole
     end = getattr(node, "end_lineno", node.lineno)
-    return Region(file_path, node.lineno, end)
+    return Region(file_path, symbol_start(node), end)
+
+
+def symbol_start(node: ast.AST) -> int:
+    """First line of a def/class *including* its decorators, so a decorator
+    change falls inside the hashed/gated span."""
+    decorators = getattr(node, "decorator_list", None)
+    if decorators:
+        return min(d.lineno for d in decorators)
+    return node.lineno
 
 
 def _parse(path: Path) -> ast.Module | None:

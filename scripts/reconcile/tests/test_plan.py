@@ -32,7 +32,7 @@ class PlanFixture:
     def __init__(self, tmp: Path):
         self.root = tmp
         for name in ["calc.py", "managed_add.md", "managed_whole.md",
-                     "unmanaged.md", "no_direction.md"]:
+                     "managed_scaled.md", "unmanaged.md", "no_direction.md"]:
             (self.root / name).write_text(
                 (FIX / name).read_text(encoding="utf-8"), encoding="utf-8")
         git(self.root, "init", "-q")
@@ -98,9 +98,25 @@ class CodeChangeTest(unittest.TestCase):
 
 
 class BlastRadiusTest(unittest.TestCase):
-    def test_reaches_doc_via_calls_at_depth_two(self):
-        # Bind a doc to `add`; change `scaled_add`, which CALLS `add`. At
-        # depth>=1 the change reaches `add`'s governed doc (widen, not narrow).
+    def test_changing_callee_reaches_callers_doc(self):
+        # Bind a doc to `scaled_add`; change only `add`'s body. Because
+        # scaled_add depends on add, add's change is at risk to scaled_add's
+        # doc (walk dependents, then GOVERNS). The correct direction.
+        with tempfile.TemporaryDirectory() as tmp:
+            fx = PlanFixture(Path(tmp))
+            fx.edit("calc.py", (FIX / "calc.py").read_text()
+                    .replace("return a + b", "return a + b + 1"))
+            judge = RecordingJudge()
+            result = plan(fx.root, base="HEAD", judge=judge, depth=2)
+            e = _entry(result, "managed_scaled.md#scaled-behavior")
+            self.assertTrue(e.on_frontier,
+                            "changed callee must reach the caller's doc")
+            judged_keys = {c.key for c in judge.calls}
+            self.assertIn("managed_scaled.md#scaled-behavior", judged_keys)
+
+    def test_changing_caller_does_not_pull_unrelated_callee_doc(self):
+        # Change only `scaled_add`'s body. `add` does not depend on scaled_add,
+        # so add's symbol-scoped doc must NOT be pulled in (precision).
         with tempfile.TemporaryDirectory() as tmp:
             fx = PlanFixture(Path(tmp))
             fx.edit("calc.py", (FIX / "calc.py").read_text()
@@ -109,24 +125,98 @@ class BlastRadiusTest(unittest.TestCase):
             judge = RecordingJudge()
             result = plan(fx.root, base="HEAD", judge=judge, depth=2)
             e = _entry(result, "managed_add.md#add-behavior")
-            self.assertTrue(e.on_frontier,
-                            "changed caller must reach the callee's doc")
-            self.assertGreaterEqual(len(judge.calls), 1)
-
-    def test_depth_zero_does_not_reach_indirect_doc(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            fx = PlanFixture(Path(tmp))
-            fx.edit("calc.py", (FIX / "calc.py").read_text()
-                    .replace("return add(a, b) * factor",
-                             "return add(a, b) * factor * 2"))
-            judge = RecordingJudge()
-            result = plan(fx.root, base="HEAD", judge=judge, depth=0)
-            e = _entry(result, "managed_add.md#add-behavior")
-            # The symbol-scoped `add` binding is NOT reached at depth 0; only
-            # the whole-file `overview` binding overlaps the change directly.
-            self.assertFalse(e.on_frontier)
+            self.assertFalse(
+                e.on_frontier,
+                "changing a caller must not pull the unrelated callee's doc")
             judged_keys = {c.key for c in judge.calls}
             self.assertNotIn("managed_add.md#add-behavior", judged_keys)
+
+
+class GlobCollisionTest(unittest.TestCase):
+    def test_glob_over_two_files_yields_two_distinct_entries(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fx = PlanFixture(Path(tmp))
+            fx.root.joinpath("mod_a.py").write_text(
+                "def a():\n    return 1\n", encoding="utf-8")
+            fx.root.joinpath("mod_b.py").write_text(
+                "def b():\n    return 2\n", encoding="utf-8")
+            fx.root.joinpath("managed_glob.md").write_text(
+                "---\nreconcile:\n  direction: code-is-truth\n"
+                "  bindings:\n    - doc_anchor: mods\n"
+                "      governs: mod_*.py\n---\n\n"
+                "<!-- reconcile:mods:start -->\n"
+                "Covers every mod_*.py.\n"
+                "<!-- reconcile:mods:end -->\n", encoding="utf-8")
+            git(fx.root, "add", "-A")
+            git(fx.root, "commit", "-q", "-m", "glob")
+            result = plan(fx.root, base="HEAD")
+            glob_entries = [e for e in result.entries
+                            if e.key.startswith("managed_glob.md#mods")]
+            self.assertEqual(len(glob_entries), 2, glob_entries)
+            # Distinct identities and distinct governed files, no collision.
+            self.assertEqual(len({e.entry_id for e in glob_entries}), 2)
+            self.assertEqual({e.governs for e in glob_entries},
+                             {"mod_a.py", "mod_b.py"})
+            # Both share the same doc anchor key.
+            self.assertEqual({e.key for e in glob_entries},
+                             {"managed_glob.md#mods"})
+
+
+class UntrackedFileTest(unittest.TestCase):
+    def test_new_file_and_binding_not_silently_in_sync(self):
+        # A brand-new (untracked) code file plus its doc binding must reach the
+        # frontier on the first commit, not read as in-sync.
+        with tempfile.TemporaryDirectory() as tmp:
+            fx = PlanFixture(Path(tmp))
+            fx.root.joinpath("brand_new.py").write_text(
+                "def brand_new():\n    return 42\n", encoding="utf-8")
+            fx.root.joinpath("managed_new.md").write_text(
+                "---\nreconcile:\n  direction: code-is-truth\n"
+                "  bindings:\n    - doc_anchor: new\n"
+                "      governs: brand_new.py\n---\n\n"
+                "<!-- reconcile:new:start -->\n"
+                "`brand_new()` returns 42.\n"
+                "<!-- reconcile:new:end -->\n", encoding="utf-8")
+            judge = RecordingJudge()
+            result = plan(fx.root, base="HEAD", judge=judge)
+            e = _entry(result, "managed_new.md#new")
+            self.assertTrue(e.on_frontier,
+                            "new governed file must not read as in-sync")
+
+
+class DecoratorGateTest(unittest.TestCase):
+    def test_decorator_arg_change_is_gated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fx = PlanFixture(Path(tmp))
+            for name in ["decorated.py", "managed_decorated.md"]:
+                fx.root.joinpath(name).write_text(
+                    (FIX / name).read_text(), encoding="utf-8")
+            git(fx.root, "add", "-A")
+            git(fx.root, "commit", "-q", "-m", "decorated")
+            fx.edit("decorated.py", (FIX / "decorated.py").read_text()
+                    .replace("maxsize=1", "maxsize=99"))
+            judge = RecordingJudge()
+            result = plan(fx.root, base="HEAD", judge=judge)
+            e = _entry(result, "managed_decorated.md#cached-behavior")
+            self.assertTrue(e.on_frontier,
+                            "decorator-arg change must gate the symbol")
+            self.assertIn("managed_decorated.md#cached-behavior",
+                          {c.key for c in judge.calls})
+
+
+class GovernsContainmentTest(unittest.TestCase):
+    def test_escaping_governs_degrades_to_error_not_crash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fx = PlanFixture(Path(tmp))
+            fx.root.joinpath("managed_escape.md").write_text(
+                (FIX / "managed_escape.md").read_text(), encoding="utf-8")
+            git(fx.root, "add", "-A")
+            git(fx.root, "commit", "-q", "-m", "escape")
+            result = plan(fx.root, base="HEAD", judge=RecordingJudge())
+            escape = [e for e in result.entries
+                      if "managed_escape.md" in e.key]
+            self.assertTrue(escape)
+            self.assertTrue(all(e.verdict == "error" for e in escape))
 
 
 class DirectionExplicitTest(unittest.TestCase):
@@ -139,6 +229,24 @@ class DirectionExplicitTest(unittest.TestCase):
                 any("no_direction.md" in e.key for e in errors))
             for e in errors:
                 self.assertIsNone(e.direction)
+
+
+class PruneVendoredTest(unittest.TestCase):
+    def test_hidden_and_vendored_dirs_are_pruned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fx = PlanFixture(Path(tmp))
+            for d in [".venv", "node_modules"]:
+                sub = fx.root / d
+                sub.mkdir()
+                (sub / "vendored.py").write_text("x = 1\n")
+                (sub / "vendored.md").write_text(
+                    "---\nreconcile:\n  direction: code-is-truth\n"
+                    "  bindings:\n    - doc_anchor: v\n"
+                    "      governs: vendored.py\n---\nv\n")
+            result = plan(fx.root, base="HEAD", judge=RecordingJudge())
+            self.assertFalse(any("node_modules" in e.key or ".venv" in e.key
+                                 for e in result.entries),
+                             [e.key for e in result.entries])
 
 
 class ReadOnlyTest(unittest.TestCase):
