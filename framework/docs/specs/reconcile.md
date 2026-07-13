@@ -1,9 +1,11 @@
 # Doc↔code drift reconciler
 
 Terraform for agentic docs: detect when `.md` docs drift from the code they
-describe, propose a plan, and apply fixes in the safe direction only. Hosted as
-`framework/scripts/reconcile/` per framework/docs/adr/0003. This spec is **M0**: the schema every
-later milestone inherits. Design only - no code here.
+describe, propose a plan, and apply fixes in the safe direction only.
+Implemented in the external [knowform](https://pypi.org/project/knowform/)
+package (github.com/AndyLan0503/knowform) per framework/docs/adr/0003; this repo
+is its consumer #1. This spec is **M0**: the schema every later milestone
+inherits. Design only - no code here.
 
 ## Analysis
 
@@ -18,7 +20,7 @@ later milestone inherits. Design only - no code here.
   - As a maintainer, I want to bless an intentional divergence once, without
     the tool nagging about it again.
 - **Acceptance criteria**
-  - Given an unchanged governed region, When `reconcile plan` runs, Then it
+  - Given an unchanged governed region, When `knowform plan` runs, Then it
     makes zero LLM calls and reports no drift.
   - Given code changed under a `code-is-truth` binding, When `plan` runs, Then
     the affected binding is flagged with the specific claim at risk.
@@ -33,7 +35,7 @@ later milestone inherits. Design only - no code here.
 - **Open questions** - resolved in framework/docs/adr/0003 (explicit direction; anchored
   region + hash bindings; Python).
 - **Assumed answers (M1 detector)** - decided conservatively for the
-  `reconcile plan` slice, no human gate:
+  `knowform plan` slice, no human gate:
   - *Recorded state is not yet available* (lockfile writer is M2), so Tier-0
     uses `git diff` against a base ref (default: working tree vs `HEAD`) as the
     changed-set signal. A binding whose doc span and code region both fall
@@ -73,7 +75,7 @@ Drift = recorded vs actual. Plan = desired vs recorded.
 
 ```yaml
 ---
-reconcile:
+knowform:
   direction: code-is-truth   # | doc-is-truth | manual
   bindings:
     - doc_anchor: overview          # named region in THIS doc
@@ -90,12 +92,12 @@ reconcile:
 - `bindings` - one or more region↔code links. A doc with no bindings is
   unmanaged and ignored.
 
-The `reconcile:` block is one field of an OKF-format document: it coexists with
+The `knowform:` block is one field of an OKF-format document: it coexists with
 the OKF scalar fields (`type, title, description, tags, timestamp` and repo
-extensions like `id, sources`) that a `framework/knowledge/` card carries. `reconcile:`
+extensions like `id, sources`) that a `framework/knowledge/` card carries. `knowform:`
 is a declared OKF extension field (framework/knowledge/README.md), so a single card is
-simultaneously an OKF document and a reconcile-governed one; the parser reads
-the `reconcile:` block and ignores the sibling OKF scalars.
+simultaneously an OKF document and a knowform-governed one; the parser reads
+the `knowform:` block and ignores the sibling OKF scalars.
 
 ### Anchors (region + hash bindings, per framework/docs/adr/0003)
 
@@ -104,9 +106,9 @@ A binding ties a **doc region** to a **code region**; the lockfile hashes each.
 - **doc_anchor** - a named region in the markdown. Delimited by HTML-comment
   fences so anchors survive rendering:
   ```markdown
-  <!-- reconcile:overview:start -->
+  <!-- knowform:overview:start -->
   ...prose governed by this binding...
-  <!-- reconcile:overview:end -->
+  <!-- knowform:overview:end -->
   ```
   Absent fences → the anchor spans the whole doc (degrades to file-level).
 - **code_anchor** - optional. A symbol path or line-range narrowing `governs`.

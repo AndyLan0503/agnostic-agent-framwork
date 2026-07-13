@@ -1,8 +1,19 @@
 # ADR-0003: Doc↔code drift is enforced by construction
 
-- **Status:** Proposed
+- **Status:** Accepted; implementation graduated to the external
+  [knowform](https://pypi.org/project/knowform/) package
+  (github.com/AndyLan0503/knowform)
 - **Date:** 2026-07-12
 - **Deciders:** framework authors
+
+> **Update (2026-07-13).** The decision below stands unchanged. The reconciler
+> was first vendored here as `framework/scripts/reconcile/` to dogfood on this
+> corpus; it has since graduated to a standalone package, **knowform**
+> (PyPI: `knowform`, source: github.com/AndyLan0503/knowform), taking the
+> graduation path the "Standalone tool" alternative anticipated. This repo is
+> knowform's consumer #1: `make setup` installs it, `make reconcile` runs it,
+> and cards bind code via the `knowform:` frontmatter block (formerly
+> `reconcile:`). The model, states, and invariants are exactly as decided here.
 
 ## Context
 
