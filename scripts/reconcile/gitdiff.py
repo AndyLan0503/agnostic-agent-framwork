@@ -46,6 +46,13 @@ def _run(root: Path, args: list[str]) -> tuple[int, str]:
     return proc.returncode, proc.stdout
 
 
+def head_sha(root: Path) -> str:
+    """Current HEAD sha for lockfile provenance, or "uncommitted" when there
+    is no repo/commit yet."""
+    code, out = _run(root, ["rev-parse", "--verify", "--quiet", "HEAD"])
+    return out.strip() if code == 0 and out.strip() else "uncommitted"
+
+
 def _is_repo(root: Path) -> bool:
     code, _ = _run(root, ["rev-parse", "--is-inside-work-tree"])
     return code == 0
