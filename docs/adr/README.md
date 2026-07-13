@@ -14,3 +14,4 @@ in code review.
 
 - [0001](0001-tool-neutral-source-of-truth.md) - Everything durable lives in tool-neutral files; harness bindings are thin shims
 - [0002](0002-limits-enforced-by-construction.md) - Agent limits are enforced by construction, not prose
+- [0003](0003-doc-code-drift-enforced-by-construction.md) - Doc↔code drift is enforced by construction

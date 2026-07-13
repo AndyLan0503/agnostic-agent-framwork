@@ -41,6 +41,10 @@ in here during adoption:
 | No force-push, no hand deploys | Deny-listed in harness config; branch protection on the remote |
 | Green before merge | `make test` run locally before any commit; `<fill in: CI re-running make test on every PR>` |
 | Unattended runs stay local | gnhf settings profile deny-lists everything remote/external; `scripts/gnhf_guard.py` hook confines edits to the repo and blocks network commands even with prompts bypassed (docs/adr/0002) |
+| Docs stay in sync with code | `make reconcile` (`scripts/reconcile/`) reports doc↔code drift from recorded hashes; non-blocking until the judge is trusted, then a PR check (docs/adr/0003) |
+| XP test-first | Guardrail 2 + PR template "How tested" / test-first checkbox |
+| XP continuous integration | Guardrail 5 + `make test` gate (local; CI `<fill in>` per docs/adr/0002) |
+| XP pairing | implementer != reviewer role split; reviewer roles are read-only in every harness binding |
 | Project invariants | `<fill in: tests, DB constraints, CI checks that defend each invariant>` |
 
 When adding a guardrail, wire its mechanism in the same change.
@@ -74,6 +78,7 @@ nobody retypes pipelines by hand.
 - `make setup` - one-time local setup
 - `make test` - full verification (lint, types, tests); the gate everywhere
 - `make e2e` - black-box end-to-end suite against the shippable artifact
+- `make reconcile` - report doc↔code drift (read-only; non-blocking)
 - `<fill in: run, seed, logs, ... per project>`
 
 ## Roles and workflow
@@ -96,6 +101,30 @@ docs/agentic-sdlc.md.
 Roles are hats, not people: one human or agent can wear several, but the
 implementer never reviews their own change. Reviewer roles are read-only
 in every harness binding.
+
+### Extreme Programming (XP) disciplines
+
+The repo already runs several XP practices; this names them and maps each to
+the guardrail, role or mechanism that carries it. This subsection is additive -
+it changes no guardrail wording (guardrails 1-6 are cited by number elsewhere).
+
+Enforced (a cooperation-free mechanism exists - see the Enforcement map):
+
+- **Test-first** - guardrail 2 (behavior changes land with tests, written
+  first) plus the PR template "How tested" / test-first checkbox.
+- **Continuous integration / green-before-merge** - guardrail 5 (red is fixed
+  now) plus the `make test` gate.
+- **Pairing** - the implementer != reviewer role split (structural): the
+  implementer never reviews their own change and reviewer roles are read-only.
+
+Conventions (encouraged, but no cooperation-free mechanism today, so not
+guardrails per docs/adr/0002):
+
+- **Merciless refactoring** - permitted while tests stay green; not gated.
+- **Collective ownership** - anyone may change any file; still no autonomous
+  commit/push/merge (guardrail 3).
+- **YAGNI / simplest-thing-that-works** - the interrogator's "unnecessary
+  complexity" pass catches some, but a review is not a gate.
 
 Reusable procedures live in `skills/<name>/SKILL.md`. When a workflow has
 been done twice from memory, the second time it becomes a skill. The
@@ -141,3 +170,5 @@ keeping lives in a committed file (docs/adr/0001):
 
 - Comments and docs: short; the code carries the explanation.
 - Tooling scripts: Python over shell, unit-tested, stdlib-first.
+- Knowledge cards follow OKF (Open Knowledge Format); the format authority is
+  `knowledge/README.md`.

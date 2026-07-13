@@ -3,7 +3,7 @@
 # target names and semantics stay the same so agent instructions keep working.
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test e2e adopt
+.PHONY: help setup test e2e adopt reconcile
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-10s %s\n", $$1, $$2}'
@@ -19,3 +19,6 @@ e2e: ## Black-box e2e against the shippable artifact (fill in per project)
 
 adopt: ## Copy the scaffold into TARGET, never overwriting (make adopt TARGET=/path/to/repo)
 	python3 scripts/adopt.py $(TARGET)
+
+reconcile: ## Report doc↔code drift (read-only; non-blocking until the judge is trusted, docs/adr/0003 M4)
+	PYTHONPATH=scripts python3 -m reconcile plan --format summary

@@ -5,6 +5,11 @@ description: >-
   Use when standing up the framework (AGENTS.md, roles, skills, gnhf
   containment, collaboration artifacts) in a project. Covers copying,
   filling placeholders, wiring enforcement, and verifying the result.
+reconcile:
+  direction: code-is-truth
+  bindings:
+    - doc_anchor: whole-doc
+      governs: scripts/adopt.py
 ---
 
 # Onboard the framework
@@ -58,10 +63,18 @@ Invariants to preserve:
    matching shims in `.claude/agents/`; infra variants stay plan-only.
 7. **Wire the repository layer** the enforcement map calls for: branch
    protection on protected branches, CI running `make test` on every PR,
-   secret scanning. Record each in the map.
+   secret scanning. Record each in the map. `make reconcile` is the shipped
+   "docs stay in sync" mechanism (ADR-0003) - non-blocking by default; wire
+   it into CI beside `make test` once the judge is trusted.
 8. **Seed the artifacts.** Write knowledge cards for the 3-5 facts a
    newcomer gets wrong first; add an ADR for any standing architecture
    decision (project ADRs continue numbering after the framework's two).
+   Cards follow OKF (Open Knowledge Format); `knowledge/README.md` is the
+   format authority (required `type`; use `timestamp`, not `updated`). To
+   add card types beyond `{convention, mechanism}`, extend `TYPE_VOCAB` in
+   `scripts/test_knowledge_cards.py`. A sourced card carries a
+   `code-is-truth` `reconcile:` binding so its claim is drift-governed
+   (pattern: `knowledge/gnhf-safe-subcommands.md`).
 9. **Verify.**
    - `make setup && make test` green.
    - Guard smoke test from the repo root:
