@@ -7,79 +7,79 @@
       "doc_hash": "sha256:97cb6e47870594939a92cd89f2a174cecfdc9b4e69568beebafa46498726fd10",
       "code_hash": "sha256:ec113a0e3a38950a5a796fcc3df3362c3706fa9bd4b3a4bca1ecf7fd9bb1bcd0",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/gnhf-safe-subcommands.md#gnhf-safe-subcommands::framework/scripts/test_gnhf_guard.py": {
       "direction": "code-is-truth",
       "governs": "framework/scripts/test_gnhf_guard.py",
-      "doc_hash": "sha256:6d61fbcce7ba5c3340fd6338b271c7b89480d8ac0beeb5798d8361b85b982a04",
+      "doc_hash": "sha256:371a4a3173cd285232d2d09ca3fc857d2b650960a4274fe4f79e46047bf89731",
       "code_hash": "sha256:f5910d3c46f4285dcbf1779d0f6491b5d32a06ef5178b24407354ab11ddb5dd5",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/handoffs-are-files.md#handoffs-are-files::AGENTS.md": {
       "direction": "code-is-truth",
       "governs": "AGENTS.md",
-      "doc_hash": "sha256:28f3a43aa78faec05fbec517f3b397b56e623667715524fdf2faaee63cd39f11",
-      "code_hash": "sha256:a1c26adfd9af0043f47e54ce58a1f740eef84dbdc4570c043dd1272028431208",
+      "doc_hash": "sha256:87c3807d95353a7dea93db6084edbb947dd5da4b05ec31c47b5914607bd6305e",
+      "code_hash": "sha256:7c76e04c454838fec3202a03b0c4629d83879dffa93d4dc399e8808231d5b215",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/handoffs-are-files.md#handoffs-are-files::framework/docs/adr/0001-tool-neutral-source-of-truth.md": {
       "direction": "code-is-truth",
       "governs": "framework/docs/adr/0001-tool-neutral-source-of-truth.md",
-      "doc_hash": "sha256:28f3a43aa78faec05fbec517f3b397b56e623667715524fdf2faaee63cd39f11",
+      "doc_hash": "sha256:87c3807d95353a7dea93db6084edbb947dd5da4b05ec31c47b5914607bd6305e",
       "code_hash": "sha256:8eec405f7330c54ba28afe58f1580d11dc34f0187041d578a8a1669d2d8adcd9",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/knowledge-cards-follow-okf.md#knowledge-cards-follow-okf::framework/knowledge/README.md": {
       "direction": "code-is-truth",
       "governs": "framework/knowledge/README.md",
-      "doc_hash": "sha256:3e8b206a5c89270745cc9f6445619f1bef503e2896a93d9ced7c4ca9d3389008",
-      "code_hash": "sha256:27a8e3e1cc09cc13f623166450e0a8da3acb9a3e72aaf152c7951e7c42de6827",
+      "doc_hash": "sha256:f858ba7ff6b78814b3ee1082d1d5ad20b4c1592813bd4bfcb9342db21cccc78f",
+      "code_hash": "sha256:8a4497cc976db6d58bdf5c021101c878fdfec5b61cfd98d241977a66890334b7",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/shim-files-point-to-agents-md.md#shim-files-point-to-agents-md::.cursor/rules/agents.mdc": {
       "direction": "code-is-truth",
       "governs": ".cursor/rules/agents.mdc",
-      "doc_hash": "sha256:a429c6dd4d3b780a54e94ef7de3834fcf4758911f67ecfaed8f7a52c329ef971",
+      "doc_hash": "sha256:dd2cbe8768aeb45b6145f48275b6b36500ad83bd1ef04f2d5eb4f1d636ef7752",
       "code_hash": "sha256:e625cd8dea8447c70b448ba3d4abfe88ce0c8e085af8cef59a8352792962232f",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/shim-files-point-to-agents-md.md#shim-files-point-to-agents-md::.github/copilot-instructions.md": {
       "direction": "code-is-truth",
       "governs": ".github/copilot-instructions.md",
-      "doc_hash": "sha256:a429c6dd4d3b780a54e94ef7de3834fcf4758911f67ecfaed8f7a52c329ef971",
+      "doc_hash": "sha256:dd2cbe8768aeb45b6145f48275b6b36500ad83bd1ef04f2d5eb4f1d636ef7752",
       "code_hash": "sha256:afebcc227bbfeb00010a5fdaf743172b570415c75170181a0750dfb5baa6f425",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/shim-files-point-to-agents-md.md#shim-files-point-to-agents-md::CLAUDE.md": {
       "direction": "code-is-truth",
       "governs": "CLAUDE.md",
-      "doc_hash": "sha256:a429c6dd4d3b780a54e94ef7de3834fcf4758911f67ecfaed8f7a52c329ef971",
+      "doc_hash": "sha256:dd2cbe8768aeb45b6145f48275b6b36500ad83bd1ef04f2d5eb4f1d636ef7752",
       "code_hash": "sha256:bfa87d694ee14411cb14232120ef8f78f062b54a8a3ed7e6d1414def77f1f406",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/knowledge/shim-files-point-to-agents-md.md#shim-files-point-to-agents-md::GEMINI.md": {
       "direction": "code-is-truth",
       "governs": "GEMINI.md",
-      "doc_hash": "sha256:a429c6dd4d3b780a54e94ef7de3834fcf4758911f67ecfaed8f7a52c329ef971",
+      "doc_hash": "sha256:dd2cbe8768aeb45b6145f48275b6b36500ad83bd1ef04f2d5eb4f1d636ef7752",
       "code_hash": "sha256:3e7fda3e5c52246bc664cfc771103cdcd773be6976333432aa08748dea23e62b",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     },
     "framework/skills/adopt-framework/SKILL.md#whole-doc::framework/scripts/adopt.py": {
       "direction": "code-is-truth",
       "governs": "framework/scripts/adopt.py",
-      "doc_hash": "sha256:725966d203c5949a34260155645d891e4dbf000166ba00216b748e2246b7a17f",
+      "doc_hash": "sha256:b83ffa6a851f5fd48041f890ecf92a8c5357db55bcd4cf03d6a25f20804e4e73",
       "code_hash": "sha256:cb1849372630e20f50723fa7c478e7b4b806fd3f6424442f1e615b1001515c9b",
       "last_verdict": "in-sync",
-      "blessed_at": "5bc1bdb55360d853961b2e58620a9266f2a09261"
+      "blessed_at": "165270a18ffaca5334a152e8a8d59ce4dc35fcf1"
     }
   }
 }

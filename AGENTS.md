@@ -41,7 +41,7 @@ in here during adoption:
 | No force-push, no hand deploys | Deny-listed in harness config; branch protection on the remote |
 | Green before merge | `make test` run locally before any commit; `<fill in: CI re-running make test on every PR>` |
 | Unattended runs stay local | gnhf settings profile deny-lists everything remote/external; `framework/scripts/gnhf_guard.py` hook confines edits to the repo and blocks network commands even with prompts bypassed (framework/docs/adr/0002) |
-| Docs stay in sync with code | `make reconcile` (the external [knowform](https://pypi.org/project/knowform/) CLI, `make setup` installs it) reports doc↔code drift from recorded hashes; non-blocking until the judge is trusted, then a PR check (framework/docs/adr/0003) |
+| Docs stay in sync with code | `make reconcile` (the external [knowform](https://pypi.org/project/knowform/) CLI, source github.com/AndyLan0503/knowform; `make setup` installs it) reports doc↔code drift from recorded hashes; non-blocking until the judge is trusted, then a PR check (framework/docs/adr/0003) |
 | XP test-first | Guardrail 2 + PR template "How tested" / test-first checkbox |
 | XP continuous integration | Guardrail 5 + `make test` gate (local; CI `<fill in>` per framework/docs/adr/0002) |
 | XP pairing | implementer != reviewer role split; reviewer roles are read-only in every harness binding |
