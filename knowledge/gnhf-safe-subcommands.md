@@ -1,17 +1,21 @@
 ---
-id: gnhf-safe-subcommands
+type: mechanism
 title: The gnhf guard allows local-only subcommands of blocked tools
+description: The unattended-run guard whitelists specific safe subcommands of otherwise-blocked tool families.
 tags: [gnhf, containment, agents, security]
+timestamp: 2026-07-03
+id: gnhf-safe-subcommands
 related: [handoffs-are-files]
 adr: ["0002"]
 confidence: high
 sources: ["scripts/gnhf_guard.py", "scripts/test_gnhf_guard.py"]
-updated: 2026-07-03
 reconcile:
   direction: code-is-truth
   bindings:
     - doc_anchor: criterion
       governs: scripts/gnhf_guard.py
+    - doc_anchor: gnhf-safe-subcommands
+      governs: scripts/test_gnhf_guard.py
 ---
 
 The unattended-run guard blocks tool families (`terraform`, `helm`, remote

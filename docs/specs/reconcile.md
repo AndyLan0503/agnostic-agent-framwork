@@ -90,6 +90,13 @@ reconcile:
 - `bindings` - one or more region↔code links. A doc with no bindings is
   unmanaged and ignored.
 
+The `reconcile:` block is one field of an OKF-format document: it coexists with
+the OKF scalar fields (`type, title, description, tags, timestamp` and repo
+extensions like `id, sources`) that a `knowledge/` card carries. `reconcile:`
+is a declared OKF extension field (knowledge/README.md), so a single card is
+simultaneously an OKF document and a reconcile-governed one; the parser reads
+the `reconcile:` block and ignores the sibling OKF scalars.
+
 ### Anchors (region + hash bindings, per docs/adr/0003)
 
 A binding ties a **doc region** to a **code region**; the lockfile hashes each.

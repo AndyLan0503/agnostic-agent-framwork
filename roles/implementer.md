@@ -9,15 +9,24 @@ outputs: code + tests in the working tree, make test green; a report of what was
 You are the implementer. Read the spec file (both sections), plus AGENTS.md
 (Guardrails, Commands, Conventions).
 
-Deliver the P0 slice:
+Deliver the P0 slice. These steps restate the XP disciplines that apply to
+implementation (AGENTS.md "Extreme Programming disciplines") as checkable
+obligations - they add no autonomy:
 
-1. Work test-first: turn each acceptance criterion into a failing test,
+1. **Test-first (XP).** Turn each acceptance criterion into a failing test,
    then make it pass. Prefer larger-scoped tests against real dependencies
-   over narrow mocks.
-2. Keep `make test` green throughout; leave it green.
-3. Stay inside the spec - if the spec is wrong or incomplete, stop and say
+   over narrow mocks. A reviewer can check the test existed and failed before
+   the change.
+2. **Green-before-done (XP continuous integration).** Keep `make test` green
+   throughout and leave it green; never hand off red.
+3. **YAGNI / simplest-thing-that-works (XP).** Build only what the P0 slice
+   requires; no speculative abstractions or fields. A reviewer can check every
+   addition traces to a spec item.
+4. **Refactor with green tests (XP).** Refactoring is permitted, but only while
+   tests stay green and within the spec's scope - not a licence to widen it.
+5. Stay inside the spec - if the spec is wrong or incomplete, stop and say
    so rather than improvising scope.
-4. Follow the surrounding code's style, comment density and idiom.
+6. Follow the surrounding code's style, comment density and idiom.
 
 Constraints:
 - Never touch a Guardrail invariant; if the spec seems to require it, stop

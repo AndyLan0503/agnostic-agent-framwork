@@ -29,6 +29,20 @@ class FrontmatterTest(unittest.TestCase):
         self.assertEqual(doc.direction, Direction.DOC_IS_TRUTH)
         self.assertIsNone(doc.bindings[0].code_anchor)
 
+    def test_full_okf_card_parses_ignoring_okf_scalars(self):
+        # A single file is both an OKF card (type/title/.../sources scalars)
+        # and a reconcile-governed doc; the parser reads the reconcile block
+        # and ignores the sibling OKF scalars before it.
+        doc = parse_frontmatter(read("managed_okf.md"))
+        self.assertIsNotNone(doc)
+        self.assertIsNone(doc.error)
+        self.assertEqual(doc.direction, Direction.CODE_IS_TRUTH)
+        self.assertEqual(len(doc.bindings), 1)
+        b = doc.bindings[0]
+        self.assertEqual(b.doc_anchor, "okf-behavior")
+        self.assertEqual(b.governs, "calc.py")
+        self.assertEqual(b.code_anchor, "def add")
+
     def test_missing_reconcile_is_unmanaged(self):
         self.assertIsNone(parse_frontmatter(read("unmanaged.md")))
 
