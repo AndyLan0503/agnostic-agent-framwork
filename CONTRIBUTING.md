@@ -17,15 +17,15 @@ make setup
 - Branch from the integration branch; open a PR and fill the checklist
   honestly. One gitmoji per PR.
 - Ending a session or handing work to a teammate? Follow
-  `skills/session-handoff/SKILL.md` to update the gitignored `HANDOFF.md`
+  `framework/skills/session-handoff/SKILL.md` to update the gitignored `HANDOFF.md`
   so the next person starts warm.
-- Feature work follows the pipeline in `docs/agentic-sdlc.md`; role
-  prompts live in `roles/` and run from any harness.
+- Feature work follows the pipeline in `framework/docs/agentic-sdlc.md`; role
+  prompts live in `framework/roles/` and run from any harness.
 
 ## Where things go
 
-- A decision that is expensive to reverse -> `docs/adr/`
-- A fact worth remembering -> a card in `knowledge/`
-- A procedure done twice -> a runbook in `skills/`
-- Requirements and scope for a feature -> `docs/specs/<feature>.md`
+- A decision that is expensive to reverse -> `framework/docs/adr/`
+- A fact worth remembering -> a card in `framework/knowledge/`
+- A procedure done twice -> a runbook in `framework/skills/`
+- Requirements and scope for a feature -> `framework/docs/specs/<feature>.md`
 - A rule agents must follow -> `AGENTS.md`, wired into the enforcement map

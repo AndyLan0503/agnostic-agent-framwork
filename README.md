@@ -15,15 +15,15 @@ harnesses, and collaboration state that outlives any chat session.
    same `make test`. AGENTS.md carries an enforcement map pairing each
    rule with its mechanism. The framework ships the harness layer and the
    behavioral rules; CI workflows and hooks are the adopting project's to
-   wire (docs/adr/0002).
+   wire (framework/docs/adr/0002).
 3. **Collaboration state lives in committed files.** Decisions in
-   `docs/adr/`, facts in `knowledge/` cards, feature handoffs in
-   `docs/specs/`, session state in gitignored `HANDOFF.md`. Chat history
+   `framework/docs/adr/`, facts in `framework/knowledge/` cards, feature handoffs in
+   `framework/docs/specs/`, session state in gitignored `HANDOFF.md`. Chat history
    is invisible to teammates and to the next session; files are not.
 4. **Roles and skills are portable.** SDLC roles (analyst, PM,
    implementer, interrogator, security reviewer, release captain) are
-   tool-neutral prompt files in `roles/`; procedures are `SKILL.md`
-   runbooks in `skills/`. Harness bindings are three-line shims, so the
+   tool-neutral prompt files in `framework/roles/`; procedures are `SKILL.md`
+   runbooks in `framework/skills/`. Harness bindings are three-line shims, so the
    same pipeline runs from Claude Code, Cursor, Gemini or a plain chat.
 
 ## Layout
@@ -32,16 +32,16 @@ harnesses, and collaboration state that outlives any chat session.
 |---|---|
 | `AGENTS.md` | Source of truth: guardrails, enforcement map, roles, conventions |
 | `CLAUDE.md`, `GEMINI.md`, `.cursor/`, `.github/copilot-instructions.md` | Harness pointer shims |
-| `roles/` | Tool-neutral SDLC role prompts (access, inputs, outputs declared) |
-| `skills/` | Reusable runbooks, one `SKILL.md` per procedure |
-| `docs/agentic-sdlc.md` | The pipeline: handoffs, human gates, autonomy levels |
-| `docs/running-the-pipeline.md` | How to use `/ship` and `/gnhf` day to day |
-| `docs/specs/` | Feature specs - the analyst -> PM -> implementer handoff artifact |
-| `docs/adr/` | Decision records + template |
-| `knowledge/` | One-fact-per-card knowledge base |
+| `framework/roles/` | Tool-neutral SDLC role prompts (access, inputs, outputs declared) |
+| `framework/skills/` | Reusable runbooks, one `SKILL.md` per procedure |
+| `framework/docs/agentic-sdlc.md` | The pipeline: handoffs, human gates, autonomy levels |
+| `framework/docs/running-the-pipeline.md` | How to use `/ship` and `/gnhf` day to day |
+| `framework/docs/specs/` | Feature specs - the analyst -> PM -> implementer handoff artifact |
+| `framework/docs/adr/` | Decision records + template |
+| `framework/knowledge/` | One-fact-per-card knowledge base |
 | `.claude/` | Claude Code bindings: permission policy, role shims, `/ship` + `/gnhf`, gnhf containment profile |
 | `.github/` | PR template mirroring the guardrails + Copilot shim |
-| `scripts/` | `gnhf.py` unattended launcher + `gnhf_guard.py` containment hook, unit-tested |
+| `framework/scripts/` | `gnhf.py` unattended launcher + `gnhf_guard.py` containment hook, unit-tested |
 | `Makefile` | Canonical entrypoints: `setup`, `test`, `e2e` |
 
 ## Onboard a project
@@ -55,7 +55,7 @@ make adopt TARGET=/path/to/your-repo
 Or from inside the target repo, installing straight from the remote:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/AndyLan0503/agnostic-agent-framwork/main/scripts/adopt.py | python3 - . --from https://github.com/AndyLan0503/agnostic-agent-framwork
+curl -fsSL https://raw.githubusercontent.com/AndyLan0503/agnostic-agent-framwork/main/framework/scripts/adopt.py | python3 - . --from https://github.com/AndyLan0503/agnostic-agent-framwork
 ```
 
 The installer clones the framework to a temp dir and adopts from it,
@@ -72,10 +72,10 @@ updates unless the framework actually changed them.
 
 Works for new and existing repos: nothing is ever overwritten, and where
 an existing file differs the framework version lands beside it as
-`<name>.framework-new` to merge from. Then `skills/adopt-framework/SKILL.md`
+`<name>.framework-new` to merge from. Then `framework/skills/adopt-framework/SKILL.md`
 walks the rest - merge the conflicts (fold an existing CLAUDE.md into
 AGENTS.md, wrap existing build commands in the Make target names, union
 permissions), fill the `<fill in>` placeholders, split the implementer per
 stack, wire branch protection and CI, seed knowledge and ADRs. It ends
 with a verification checklist; the whole thing is agent-runnable - tell an
-agent in the target repo to "follow skills/adopt-framework/SKILL.md".
+agent in the target repo to "follow framework/skills/adopt-framework/SKILL.md".

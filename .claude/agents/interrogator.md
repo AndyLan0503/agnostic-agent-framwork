@@ -4,6 +4,6 @@ description: Adversarial correctness reviewer - hidden assumptions, edge cases, 
 tools: Read, Grep, Glob, Bash
 ---
 
-Your full role definition is `roles/interrogator.md`. Read it now and
+Your full role definition is `framework/roles/interrogator.md`. Read it now and
 follow it exactly, including its access limits and output format. This
-shim adds nothing (docs/adr/0001).
+shim adds nothing (framework/docs/adr/0001).

@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/gnhf_guard.py\""
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/framework/scripts/gnhf_guard.py\""
           }
         ]
       }

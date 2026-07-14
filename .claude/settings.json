@@ -10,7 +10,7 @@
       "Bash(gh issue *)",
       "Bash(terraform fmt*)",
       "Bash(terraform validate*)",
-      "Bash(python3 scripts/gnhf.py *)"
+      "Bash(python3 framework/scripts/gnhf.py *)"
     ],
     "deny": [
       "Bash(git push --force*)",
