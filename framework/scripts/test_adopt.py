@@ -662,6 +662,10 @@ class CitationSweepTest(unittest.TestCase):
     """Shipped files must not reference framework-side artifacts."""
 
     ADR_PATH = re.compile(r"framework/docs/adr/(\d{4})")
+    ADR_REFERENCE = re.compile(
+        r"framework adr|\bADR-\d|\b\d{4}-[a-z0-9][\w-]*\.md", re.IGNORECASE
+    )
+    ADR_REFERENCE_ALLOWED = {"0000-template.md"}
 
     def shipped_texts(self):
         for rel in adopt.scaffold_files():
@@ -674,6 +678,19 @@ class CitationSweepTest(unittest.TestCase):
                     num, "0000",
                     f"{rel} cites framework/docs/adr/{num}, which does not ship",
                 )
+
+    def test_no_shipped_file_references_a_framework_adr(self):
+        """Rationale for framework decisions stays upstream: shipped files
+        carry their why inline or not at all, never a numbered ADR cite."""
+        for rel, text in self.shipped_texts():
+            hits = [
+                m.group(0)
+                for m in self.ADR_REFERENCE.finditer(text)
+                if m.group(0) not in self.ADR_REFERENCE_ALLOWED
+            ]
+            self.assertEqual(
+                hits, [], f"{rel} references framework ADRs: {hits}"
+            )
 
     def test_no_shipped_file_references_the_adopt_make_target(self):
         for rel, text in self.shipped_texts():

@@ -11,7 +11,7 @@ description: >-
 # Unattended run (Level 2)
 
 You are the conductor of framework/skills/conduct-pipeline/SKILL.md, running without
-a human. Containment is enforced around you (framework ADR-0002); your job is to
+a human. Containment is enforced around you; your job is to
 work well inside it, not to test its edges.
 
 The containment contract (enforced by the gnhf settings profile and

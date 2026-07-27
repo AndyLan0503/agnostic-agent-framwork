@@ -10,11 +10,9 @@ description: >-
 # Onboard the framework
 
 Invariants to preserve:
-- AGENTS.md stays the single source of truth; harness files stay pointers
-  (framework ADR-0001).
+- AGENTS.md stays the single source of truth; harness files stay pointers.
 - Existing project files are never overwritten by the scaffold.
-- Every guardrail gets a mechanism in the enforcement map, not just prose
-  (framework ADR-0002).
+- Every guardrail gets a mechanism in the enforcement map, not just prose.
 
 ## Steps
 
@@ -37,7 +35,6 @@ Invariants to preserve:
      project allows, add the framework's denies.
    - **Existing framework/docs/adr/**: keep the project's decision log as is;
      the scaffold ships only `0000-template.md` and the directory README.
-     Framework ADRs stay upstream, cited as `framework ADR-NNNN`.
    Delete each `.framework-new` once merged.
 2. **Fill AGENTS.md.** Replace every `<fill in>`: project invariants under
    Guardrails, enforcement map rows, commands, protected branches and
@@ -59,7 +56,7 @@ Invariants to preserve:
 7. **Wire the repository layer** the enforcement map calls for: branch
    protection on protected branches, CI running `make test` on every PR,
    secret scanning. Record each in the map. `make reconcile` is the shipped
-   "docs stay in sync" mechanism (framework ADR-0003) - non-blocking by default; wire
+   "docs stay in sync" mechanism - non-blocking by default; wire
    it into CI beside `make test` once the judge is trusted.
 8. **Seed the artifacts.** Write knowledge cards for the 3-5 facts a
    newcomer gets wrong first; add an ADR for any standing architecture

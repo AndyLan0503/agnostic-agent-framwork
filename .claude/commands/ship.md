@@ -8,4 +8,4 @@ Follow `framework/skills/conduct-pipeline/SKILL.md` for this request:
 $ARGUMENTS
 
 Dispatch roles as subagents via the shims in `.claude/agents/` (they read
-`framework/roles/<name>.md`). This command adds nothing to the skill (framework ADR-0001).
+`framework/roles/<name>.md`). This command adds nothing to the skill.

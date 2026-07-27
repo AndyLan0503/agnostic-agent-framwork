@@ -49,3 +49,18 @@ work is auditable because the artifact proves what was done. Costs: one
 indirection when a shim loads, and discipline - if it only exists in the
 conversation, it does not exist for the team. Content in a shim beyond
 the pointer is a bug.
+
+## Governs
+
+Shipped files carry no citations back to this ADR; this list is the
+traceability, maintained when the decision's reach changes.
+
+- `AGENTS.md` - the single source of truth and its collaboration-artifacts
+  section.
+- `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/agents.mdc`,
+  `.github/copilot-instructions.md`, `.claude/agents/*`,
+  `.claude/commands/*` - pointer shims that add nothing.
+- `framework/roles/`, `framework/skills/` - tool-neutral role prompts and
+  runbooks.
+- `framework/docs/specs/README.md`, `framework/docs/agentic-sdlc.md` -
+  artifact-mediated handoffs.

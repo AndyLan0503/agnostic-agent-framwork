@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-All durable guidance for this repository lives in AGENTS.md (framework ADR-0001).
+All durable guidance for this repository lives in AGENTS.md.
 
 @AGENTS.md
 

@@ -17,7 +17,7 @@ knowform:
       governs: framework/scripts/test_gnhf_guard.py
 ---
 
-The unattended-run guard (containment per framework ADR-0002) blocks tool
+The unattended-run guard blocks tool
 families (`terraform`, `helm`, remote git, ...) but whitelists specific
 subcommands in `SAFE_BASH` (framework/scripts/gnhf_guard.py). Criterion for
 adding one - all four must hold:

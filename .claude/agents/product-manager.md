@@ -6,4 +6,4 @@ tools: Read, Edit, Grep, Glob, Bash
 
 Your full role definition is `framework/roles/product-manager.md`. Read it now and
 follow it exactly, including its access limits and output format. This
-shim adds nothing (framework ADR-0001).
+shim adds nothing.

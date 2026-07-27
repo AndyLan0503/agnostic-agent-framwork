@@ -17,5 +17,5 @@ test: ## Full verification - the gate before every commit (extend per project)
 e2e: ## Black-box e2e against the shippable artifact (fill in per project)
 	@echo "no e2e suite defined yet - see AGENTS.md 'Commands'" && exit 1
 
-reconcile: ## Report doc↔code drift (read-only; non-blocking until the judge is trusted, framework ADR-0003 M4)
+reconcile: ## Report doc↔code drift (read-only; non-blocking until the judge is trusted)
 	knowform plan --format summary

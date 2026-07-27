@@ -71,7 +71,7 @@ Rationale:
 
 ### `knowform:` is an OKF extension field
 
-The drift reconciler (framework ADR-0003) is knowform, an external published tool
+The drift reconciler is knowform, an external published tool
 (https://pypi.org/project/knowform/, github.com/AndyLan0503/knowform). It reads
 a nested `knowform:` block from a doc's frontmatter. That block is an OKF
 extension field: a single card can be simultaneously an OKF document (its scalar

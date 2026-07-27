@@ -2,7 +2,7 @@
 
 Blocks edits outside the repository, remote git actions, network commands
 and web tools. Hooks run on every tool call regardless of permission mode,
-so this holds even with prompts bypassed (framework ADR-0002). Defense, not
+so this holds even with prompts bypassed. Defense, not
 proof: for a hard guarantee, run the whole session network-isolated.
 """
 from __future__ import annotations

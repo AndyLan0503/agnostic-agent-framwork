@@ -57,3 +57,17 @@ Gates hold even against a convinced agent, and the blast radius of a bad
 unattended run is bounded to local commits on a throwaway branch. Costs:
 new guardrails must be wired to a mechanism in the same change, and the
 guard's blocklists need maintaining as the project adopts new tools.
+
+## Governs
+
+Shipped files carry no citations back to this ADR; this list is the
+traceability, maintained when the decision's reach changes.
+
+- `AGENTS.md` - the enforcement map and guardrail 3's unattended-run
+  exception.
+- `.claude/settings.json`, `.claude/gnhf-settings.json` - permission
+  policy and containment profile.
+- `framework/scripts/gnhf.py`, `framework/scripts/gnhf_guard.py` -
+  launcher and cooperation-free guard.
+- `framework/skills/unattended-run/SKILL.md`,
+  `framework/docs/agentic-sdlc.md` - Level 2 procedure and gate model.

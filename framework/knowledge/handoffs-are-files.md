@@ -16,7 +16,7 @@ knowform:
 ---
 
 Chat history evaporates at session end and is invisible to teammates and to
-other harnesses (framework ADR-0001). Decisions go to `framework/docs/adr/`, facts go to `framework/knowledge/`
+other harnesses. Decisions go to `framework/docs/adr/`, facts go to `framework/knowledge/`
 cards (in the same PR that changes the fact), and session working state
 goes to gitignored `HANDOFF.md` - written at session end, read at session
 start.

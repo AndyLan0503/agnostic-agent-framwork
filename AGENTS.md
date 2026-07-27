@@ -3,11 +3,7 @@
 Tool-neutral source of truth for how agents and humans work in this
 repository. Harness-specific files (CLAUDE.md, GEMINI.md,
 `.cursor/rules/agents.mdc`, `.github/copilot-instructions.md`) are thin
-pointers here - when guidance changes, it changes in this file only
-(framework ADR-0001).
-
-`framework ADR-NNNN` citations resolve in the framework source repo:
-https://github.com/AndyLan0503/agnostic-agent-framwork.
+pointers here - when guidance changes, it changes in this file only.
 
 Sections marked `<fill in>` are placeholders for the adopting project.
 
@@ -21,7 +17,7 @@ Keep them short, concrete and checkable.
    tests against real dependencies over narrow mocks.
 3. Agents never commit, push, merge or deploy on their own - a human
    triggers each of those explicitly. Sole exception: a contained
-   unattended run (framework ADR-0002) may commit checkpoints on its own
+   unattended run may commit checkpoints on its own
    `gnhf/` branch; push, merge and deploy remain human-only everywhere.
 4. Never push to protected branches; never force-push them. Deploys happen
    by merging, never by hand.
@@ -31,7 +27,7 @@ Keep them short, concrete and checkable.
 
 ## Enforcement map
 
-A rule that exists only in prose is a wish (framework ADR-0002). Every guardrail
+A rule that exists only in prose is a wish. Every guardrail
 is backed by at least one mechanism that does not depend on the agent's
 cooperation. This framework ships the harness layer; the repository layer
 (branch protection, CI, scanners) is the adopting project's and gets filled
@@ -43,10 +39,10 @@ in here during adoption:
 | No autonomous commit/push/deploy | Those commands are absent from harness allowlists, so the harness prompts a human |
 | No force-push, no hand deploys | Deny-listed in harness config; branch protection on the remote |
 | Green before merge | `make test` run locally before any commit; `<fill in: CI re-running make test on every PR>` |
-| Unattended runs stay local | gnhf settings profile deny-lists everything remote/external; `framework/scripts/gnhf_guard.py` hook confines edits to the repo and blocks network commands even with prompts bypassed (framework ADR-0002) |
-| Docs stay in sync with code | `make reconcile` (the external [knowform](https://pypi.org/project/knowform/) CLI, source github.com/AndyLan0503/knowform; `make setup` installs it) reports doc↔code drift from recorded hashes; non-blocking until the judge is trusted, then a PR check (framework ADR-0003) |
+| Unattended runs stay local | gnhf settings profile deny-lists everything remote/external; `framework/scripts/gnhf_guard.py` hook confines edits to the repo and blocks network commands even with prompts bypassed |
+| Docs stay in sync with code | `make reconcile` (the external [knowform](https://pypi.org/project/knowform/) CLI, source github.com/AndyLan0503/knowform; `make setup` installs it) reports doc↔code drift from recorded hashes; non-blocking until the judge is trusted, then a PR check |
 | XP test-first | Guardrail 2 + PR template "How tested" / test-first checkbox |
-| XP continuous integration | Guardrail 5 + `make test` gate (local; CI `<fill in>` per framework ADR-0002) |
+| XP continuous integration | Guardrail 5 + `make test` gate (local; CI `<fill in>`) |
 | XP pairing | implementer != reviewer role split; reviewer roles are read-only in every harness binding |
 | Project invariants | `<fill in: tests, DB constraints, CI checks that defend each invariant>` |
 
@@ -65,7 +61,7 @@ and nothing more:
   unlisted so the harness asks a human. Claude Code: `.claude/settings.json`
   (committed, team-wide) and `.claude/settings.local.json` (gitignored,
   personal). Mirror the same policy in any other harness a teammate uses.
-- **Role bindings** - thin shims that point at `framework/roles/` (framework ADR-0001).
+- **Role bindings** - thin shims that point at `framework/roles/`.
   Claude Code: `.claude/agents/`. Other harnesses: hand the role file to a
   fresh session with only the access its frontmatter declares.
 - **Command bindings** - same pattern for procedures: Claude Code's
@@ -121,7 +117,7 @@ Enforced (a cooperation-free mechanism exists - see the Enforcement map):
   implementer never reviews their own change and reviewer roles are read-only.
 
 Conventions (encouraged, but no cooperation-free mechanism today, so not
-guardrails per framework ADR-0002):
+guardrails):
 
 - **Merciless refactoring** - permitted while tests stay green; not gated.
 - **Collective ownership** - anyone may change any file; still no autonomous
@@ -156,7 +152,7 @@ How agents use git, in any harness:
 ## Collaboration artifacts
 
 Chat history evaporates and is invisible to teammates; anything worth
-keeping lives in a committed file (framework ADR-0001):
+keeping lives in a committed file:
 
 - **framework/docs/specs/** - feature specs: the durable handoff between the
   analyst, product-manager and implementer roles.

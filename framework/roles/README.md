@@ -1,7 +1,7 @@
 # Roles
 
 Tool-neutral SDLC role definitions - one prompt file per role, usable from
-any harness (framework ADR-0001). The pipeline connecting them is
+any harness. The pipeline connecting them is
 framework/docs/agentic-sdlc.md.
 
 ## File format
@@ -21,7 +21,7 @@ The role prompt, written to the agent in second person.
 ## Binding a role in your harness
 
 The role file is the source of truth; bindings are thin shims that add
-nothing (same pattern as AGENTS.md, framework ADR-0001).
+nothing (same pattern as AGENTS.md).
 
 - **Claude Code**: a shim subagent in `.claude/agents/<name>.md` whose body
   says "read `framework/roles/<name>.md` and follow it"; its `tools:` frontmatter

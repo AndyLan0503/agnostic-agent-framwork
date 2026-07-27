@@ -23,8 +23,7 @@ knowform:
 
 CLAUDE.md, GEMINI.md, `.cursor/rules/agents.mdc` and
 `.github/copilot-instructions.md` each contain only a pointer (or `@` import)
-to AGENTS.md. All durable guidance lives in AGENTS.md alone (framework
-ADR-0001).
+to AGENTS.md. All durable guidance lives in AGENTS.md alone.
 
 If a rule needs changing, change AGENTS.md. Content appearing in a shim
 beyond the pointer is a bug - move it into AGENTS.md and restore the shim.

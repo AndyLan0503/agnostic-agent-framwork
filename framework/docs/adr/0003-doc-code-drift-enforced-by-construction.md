@@ -103,3 +103,13 @@ crying wolf (proven or disproven in M1), the whole approach is revisited before
 any CI wiring. The M0 schema (`framework/docs/specs/reconcile.md`) is the contract every
 later milestone inherits; changing it after M2 is expensive, so it is specified
 before code.
+
+## Governs
+
+Shipped files carry no citations back to this ADR; this list is the
+traceability, maintained when the decision's reach changes.
+
+- `Makefile` - the `reconcile` target.
+- `framework/knowledge/README.md` - the `knowform:` frontmatter contract.
+- `framework/knowledge/*` cards' `knowform:` bindings and this repo's
+  `knowform.lock` (framework-side only; targets bless their own).
