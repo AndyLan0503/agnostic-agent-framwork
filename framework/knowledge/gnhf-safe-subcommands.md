@@ -6,7 +6,6 @@ tags: [gnhf, containment, agents, security]
 timestamp: 2026-07-03
 id: gnhf-safe-subcommands
 related: [handoffs-are-files]
-adr: ["0002"]
 confidence: high
 sources: ["framework/scripts/gnhf_guard.py", "framework/scripts/test_gnhf_guard.py"]
 knowform:
@@ -18,9 +17,10 @@ knowform:
       governs: framework/scripts/test_gnhf_guard.py
 ---
 
-The unattended-run guard blocks tool families (`terraform`, `helm`, remote
-git, ...) but whitelists specific subcommands in `SAFE_BASH`
-(framework/scripts/gnhf_guard.py). Criterion for adding one - all four must hold:
+The unattended-run guard (containment per framework ADR-0002) blocks tool
+families (`terraform`, `helm`, remote git, ...) but whitelists specific
+subcommands in `SAFE_BASH` (framework/scripts/gnhf_guard.py). Criterion for
+adding one - all four must hold:
 
 <!-- knowform:criterion:start -->
 1. No network connection under any usage.

@@ -5,27 +5,22 @@ description: >-
   Use when standing up the framework (AGENTS.md, roles, skills, gnhf
   containment, collaboration artifacts) in a project. Covers copying,
   filling placeholders, wiring enforcement, and verifying the result.
-knowform:
-  direction: code-is-truth
-  bindings:
-    - doc_anchor: whole-doc
-      governs: framework/scripts/adopt.py
 ---
 
 # Onboard the framework
 
 Invariants to preserve:
 - AGENTS.md stays the single source of truth; harness files stay pointers
-  (ADR-0001).
+  (framework ADR-0001).
 - Existing project files are never overwritten by the scaffold.
 - Every guardrail gets a mechanism in the enforcement map, not just prose
-  (ADR-0002).
+  (framework ADR-0002).
 
 ## Steps
 
 1. **Copy the scaffold.** From a local framework checkout:
-   `make adopt TARGET=/path/to/repo` - or from inside the target repo,
-   straight from the remote:
+   `python3 framework/scripts/adopt.py /path/to/repo` - or from inside the
+   target repo, straight from the remote:
    `curl -fsSL <raw-url>/framework/scripts/adopt.py | python3 - . --from <framework-git-url>`.
    Nothing is overwritten; where an existing file differs from the
    framework's, the framework version lands beside it as
@@ -40,9 +35,9 @@ Invariants to preserve:
      commands so hooks, docs and roles keep working.
    - **`.claude/settings.json`**: union the permission lists - keep
      project allows, add the framework's denies.
-   - **Existing framework/docs/adr/**: keep the project's numbering; renumber the
-     two framework ADRs to continue the existing sequence and update
-     references (`grep -rn "framework/docs/adr/000"`).
+   - **Existing framework/docs/adr/**: keep the project's decision log as is;
+     the scaffold ships only `0000-template.md` and the directory README.
+     Framework ADRs stay upstream, cited as `framework ADR-NNNN`.
    Delete each `.framework-new` once merged.
 2. **Fill AGENTS.md.** Replace every `<fill in>`: project invariants under
    Guardrails, enforcement map rows, commands, protected branches and
@@ -64,11 +59,11 @@ Invariants to preserve:
 7. **Wire the repository layer** the enforcement map calls for: branch
    protection on protected branches, CI running `make test` on every PR,
    secret scanning. Record each in the map. `make reconcile` is the shipped
-   "docs stay in sync" mechanism (ADR-0003) - non-blocking by default; wire
+   "docs stay in sync" mechanism (framework ADR-0003) - non-blocking by default; wire
    it into CI beside `make test` once the judge is trusted.
 8. **Seed the artifacts.** Write knowledge cards for the 3-5 facts a
    newcomer gets wrong first; add an ADR for any standing architecture
-   decision (project ADRs continue numbering after the framework's two).
+   decision, numbered from 0001.
    Cards follow OKF (Open Knowledge Format); `framework/knowledge/README.md` is the
    format authority (required `type`; use `timestamp`, not `updated`). To
    add card types beyond `{convention, mechanism}`, extend `TYPE_VOCAB` in

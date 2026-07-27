@@ -12,7 +12,7 @@ Two cases, by how this session was started:
 - **This session is already contained** (launched by `framework/scripts/gnhf.py` or
   `claude --settings .claude/gnhf-settings.json` - permission prompts are
   bypassed): follow `framework/skills/unattended-run/SKILL.md` for the request
-  directly. This command adds nothing to the skill (framework/docs/adr/0001).
+  directly. This command adds nothing to the skill (framework ADR-0001).
 - **This is a normal session** (prompts active): do NOT run the skill here.
   Launch the contained run in the background instead:
 

@@ -71,12 +71,12 @@ Rationale:
 
 ### `knowform:` is an OKF extension field
 
-The drift reconciler (framework/docs/adr/0003) is knowform, an external published tool
+The drift reconciler (framework ADR-0003) is knowform, an external published tool
 (https://pypi.org/project/knowform/, github.com/AndyLan0503/knowform). It reads
 a nested `knowform:` block from a doc's frontmatter. That block is an OKF
 extension field: a single card can be simultaneously an OKF document (its scalar
 OKF fields and extensions) and a knowform-governed one (the `knowform:` block).
-One frontmatter format covers both; see framework/docs/specs/reconcile.md.
+One frontmatter format covers both.
 
 Every sourced card carries a `code-is-truth` `knowform:` binding whose
 `governs` is its `sources`, so each card's claim is drift-checked against the

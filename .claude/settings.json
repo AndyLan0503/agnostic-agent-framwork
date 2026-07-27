@@ -20,5 +20,8 @@
       "Read(**/*.pem)",
       "Read(**/*serviceaccount*.json)"
     ]
+  },
+  "enabledPlugins": {
+    "freebird@freebird": true
   }
 }

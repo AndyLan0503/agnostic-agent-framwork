@@ -4,7 +4,7 @@ Harness-pluggable (--harness claude|codex):
 
 - claude: headless Claude Code with the gnhf settings profile - prompts
   bypassed, containment via the profile's deny rules and the
-  framework/scripts/gnhf_guard.py hook (framework/docs/adr/0002). Resumes the same session
+  framework/scripts/gnhf_guard.py hook (framework ADR-0002). Resumes the same session
   after a usage-limit pause.
 - codex: `codex exec` inside its OS sandbox (workspace-write: edits
   confined to the workspace, network disabled by default - keep it that

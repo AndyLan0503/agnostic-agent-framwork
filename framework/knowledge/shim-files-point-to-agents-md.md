@@ -6,7 +6,6 @@ tags: [conventions, agents, source-of-truth]
 timestamp: 2026-07-03
 id: shim-files-point-to-agents-md
 related: [handoffs-are-files]
-adr: ["0001"]
 confidence: high
 sources: ["CLAUDE.md", "GEMINI.md", ".cursor/rules/agents.mdc", ".github/copilot-instructions.md"]
 knowform:
@@ -24,7 +23,8 @@ knowform:
 
 CLAUDE.md, GEMINI.md, `.cursor/rules/agents.mdc` and
 `.github/copilot-instructions.md` each contain only a pointer (or `@` import)
-to AGENTS.md. All durable guidance lives in AGENTS.md alone.
+to AGENTS.md. All durable guidance lives in AGENTS.md alone (framework
+ADR-0001).
 
 If a rule needs changing, change AGENTS.md. Content appearing in a shim
 beyond the pointer is a bug - move it into AGENTS.md and restore the shim.

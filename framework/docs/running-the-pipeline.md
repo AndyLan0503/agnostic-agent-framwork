@@ -89,7 +89,7 @@ The morning review ritual:
 5. Satisfied? Push and open the PR yourself. Not satisfied? The branch is
    throwaway by construction - delete it or mine it for the spec.
 
-Containment (framework/docs/adr/0002): edits confined to the repo, nothing remote,
+Containment (framework ADR-0002): edits confined to the repo, nothing remote,
 no external connections, local testing only. For untrusted inputs, run the
 launcher inside a network-isolated container - the guard is defense, not
 proof.

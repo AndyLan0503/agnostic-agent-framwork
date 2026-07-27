@@ -49,7 +49,7 @@ harnesses, and collaboration state that outlives any chat session.
 With this repo checked out locally:
 
 ```
-make adopt TARGET=/path/to/your-repo
+python3 framework/scripts/adopt.py /path/to/your-repo
 ```
 
 Or from inside the target repo, installing straight from the remote:
@@ -59,9 +59,9 @@ curl -fsSL https://raw.githubusercontent.com/AndyLan0503/agnostic-agent-framwork
 ```
 
 The installer clones the framework to a temp dir and adopts from it,
-recording the framework commit in the target's `.framework-version`
-(commit that file). Re-running the same command later is the update path,
-resolved per file against that base:
+recording the framework commit plus a manifest of the installed files in
+the target's `.framework-version` (commit that file). Re-running the same
+command later is the update path, resolved per file against that base:
 
 - framework changed, you didn't touch the file -> fast-forwarded (`^`)
 - you customized it, framework unchanged -> kept, silently (`=`)

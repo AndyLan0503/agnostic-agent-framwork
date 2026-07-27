@@ -1,6 +1,6 @@
 # Feature specs
 
-The durable handoff artifact between roles (framework/docs/adr/0001). One file per
+The durable handoff artifact between roles (framework ADR-0001). One file per
 feature: `framework/docs/specs/<feature-slug>.md`. The business-analyst role writes
 `## Analysis`, the product-manager role appends `## Spec`, implementers
 read both.

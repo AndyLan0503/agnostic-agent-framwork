@@ -9,10 +9,10 @@ live in `framework/roles/`; this document is the pipeline that connects them.
    teammate's harness) cannot see prior conversation. Handoffs therefore go
    through durable artifacts - the spec file, the git diff, ADRs, knowledge
    cards - and every role is handed artifact paths explicitly
-   (framework/docs/adr/0001).
+   (framework ADR-0001).
 2. **Gates are mechanical.** Commit, push, merge and deploy are human
    actions by construction: those commands are absent from every harness's
-   allowlist (framework/docs/adr/0002). An agent finishing a phase stops and reports;
+   allowlist (framework ADR-0002). An agent finishing a phase stops and reports;
    it cannot proceed past a gate even if convinced it should.
 
 An agent cannot claim it did something; the artifact proves what was done.
@@ -50,7 +50,7 @@ than trusting the implementer's report - the judge is a mechanism.
 Level 2 trades gates for containment: prompts are bypassed, but a settings
 profile plus a PreToolUse guard confine the run to local edits, local
 commits and local testing, and the launcher sleeps through usage-limit
-windows and resumes (framework/docs/adr/0002). Use it only after Level 1 is trusted
+windows and resumes (framework ADR-0002). Use it only after Level 1 is trusted
 in the adopting project.
 
 Practical usage of both levels - invocation, gates, steering, the morning
