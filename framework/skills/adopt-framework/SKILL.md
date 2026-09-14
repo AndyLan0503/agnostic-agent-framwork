@@ -36,6 +36,12 @@ Invariants to preserve:
    - **Existing framework/docs/adr/**: keep the project's decision log as is;
      the scaffold ships only `0000-template.md` and the directory README.
    Delete each `.framework-new` once merged.
+   Then **restart the session.** `.claude/agents/` shims are registered when a
+   session starts, so the ones just copied do not exist in the session that
+   copied them - the first `/ship` fails on every role with "agent type not
+   found". Until you restart, use the fallback AGENTS.md already states: hand
+   the role file to a fresh generic agent with only the access its frontmatter
+   declares.
 2. **Fill AGENTS.md.** Replace every `<fill in>`: project invariants under
    Guardrails, enforcement map rows, commands, protected branches and
    branch model under Git and GitHub behavior. Delete the placeholder
@@ -55,20 +61,36 @@ Invariants to preserve:
    matching shims in `.claude/agents/`; infra variants stay plan-only.
 7. **Wire the repository layer** the enforcement map calls for: branch
    protection on protected branches, CI running `make test` on every PR,
-   secret scanning. Record each in the map. `make reconcile` is the shipped
-   "docs stay in sync" mechanism - non-blocking by default; wire
-   it into CI beside `make test` once the judge is trusted.
+   secret scanning. Record each in the map, and replace the shipped deferral
+   dates with dates your team chose - until you do, the expiry check stays
+   skipped in your repository (CONTRIBUTING.md, "Adding an enforcement-map
+   row"). `make reconcile` is the shipped "docs stay in sync" mechanism -
+   non-blocking by default; wire it into CI beside `make test` once the judge
+   is trusted.
+   Two rules for every check you add here:
+   - **Write the check before the thing it checks.** An allowlist or scanner
+     written after the dependencies are in place rubber-stamps whatever is
+     already there.
+   - **Every check reports what it examined** - a count of files, packages or
+     rows - and ships a test that fails when that count is zero for the wrong
+     reason. A check keyed to a literal directory name, a single file
+     extension, or an absolute-path ignore list passes forever while scanning
+     nothing. See `framework/knowledge/checks-report-what-they-examined.md`.
 8. **Seed the artifacts.** Write knowledge cards for the 3-5 facts a
    newcomer gets wrong first; add an ADR for any standing architecture
    decision, numbered from 0001.
    Cards follow OKF (Open Knowledge Format); `framework/knowledge/README.md` is the
    format authority (required `type`; use `timestamp`, not `updated`). To
    add card types beyond `{convention, mechanism}`, extend `TYPE_VOCAB` in
-   `framework/scripts/test_knowledge_cards.py`. A sourced card carries a
-   `code-is-truth` `knowform:` binding so its claim is drift-governed
-   (pattern: `framework/knowledge/gnhf-safe-subcommands.md`).
+   `framework/scripts/test_knowledge_cards.py`. A card body is one `## Fact`
+   section; a sourced card gets one `code-is-truth` entry per `sources` path in
+   `knowform.bindings.json` so its claim is drift-governed (pattern:
+   `framework/knowledge/gnhf-safe-subcommands.md`). Keep the `knowform` pin in
+   `make setup` - an unpinned upgrade past a binding-model change reads zero
+   bindings and still exits 0.
 9. **Verify.**
-   - `make setup && make test` green.
+   - `make setup && make test` green. `make setup` is deliberately not
+     auto-approved - it installs from PyPI - so it prompts a human here.
    - Guard smoke test from the repo root:
      `echo '{"tool_name":"Bash","tool_input":{"command":"git push"}}' | CLAUDE_PROJECT_DIR=$PWD python3 framework/scripts/gnhf_guard.py`
      must exit 2.

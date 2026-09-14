@@ -1,0 +1,66 @@
+{
+  "markdown": [
+    {
+      "doc": "framework/knowledge/gnhf-safe-subcommands.md",
+      "heading": ["Fact"],
+      "block": 2,
+      "governs": "framework/scripts/gnhf_guard.py",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/gnhf-safe-subcommands.md",
+      "heading": ["Fact"],
+      "governs": "framework/scripts/test_gnhf_guard.py",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/checks-report-what-they-examined.md",
+      "heading": ["Fact"],
+      "block": 4,
+      "governs": "framework/roles/implementer.md",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/checks-report-what-they-examined.md",
+      "heading": ["Fact"],
+      "governs": "framework/scripts/test_framework_contract.py",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/handoffs-are-files.md",
+      "heading": ["Fact"],
+      "governs": "AGENTS.md",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/knowledge-cards-follow-okf.md",
+      "heading": ["Fact"],
+      "governs": "framework/knowledge/README.md",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/shim-files-point-to-agents-md.md",
+      "heading": ["Fact"],
+      "governs": "CLAUDE.md",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/shim-files-point-to-agents-md.md",
+      "heading": ["Fact"],
+      "governs": "GEMINI.md",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/shim-files-point-to-agents-md.md",
+      "heading": ["Fact"],
+      "governs": ".cursor/rules/agents.mdc",
+      "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/shim-files-point-to-agents-md.md",
+      "heading": ["Fact"],
+      "governs": ".github/copilot-instructions.md",
+      "direction": "code-is-truth"
+    }
+  ]
+}

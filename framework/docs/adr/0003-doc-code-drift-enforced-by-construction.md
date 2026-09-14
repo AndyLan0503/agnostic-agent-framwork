@@ -15,6 +15,16 @@
 > and cards bind code via the `knowform:` frontmatter block (formerly
 > `reconcile:`). The model, states, and invariants are exactly as decided here.
 
+> **Update (2026-09-14).** The decision still stands; the binding *syntax*
+> moved. knowform 0.3.0 removed the inline-frontmatter model, so bindings now
+> live out-of-band in `knowform.bindings.json` at the repo root and address a
+> doc region by heading path (optionally one block under it). Cards carry no
+> knowform markup at all. The model, states and invariants are unchanged - only
+> where a binding is written. `make setup` pins `knowform>=0.3,<0.4`: the
+> unpinned install silently upgraded past the old model, and because knowform
+> reads only the bindings it understands, `make reconcile` spent that period
+> reporting success over zero bindings.
+
 ## Context
 
 ADR-0002 established the framework's thesis: a rule that exists only in prose
@@ -110,6 +120,8 @@ Shipped files carry no citations back to this ADR; this list is the
 traceability, maintained when the decision's reach changes.
 
 - `Makefile` - the `reconcile` target.
-- `framework/knowledge/README.md` - the `knowform:` frontmatter contract.
-- `framework/knowledge/*` cards' `knowform:` bindings and this repo's
-  `knowform.lock` (framework-side only; targets bless their own).
+- `framework/knowledge/README.md` - the binding contract and card-body shape.
+- `knowform.bindings.json` - every card↔code binding in this repo.
+- `framework/scripts/test_knowledge_cards.py` - asserts each sourced card is
+  bound once per `sources` entry, and that each binding's anchor resolves.
+- `knowform.lock` - blessed hashes (framework-side only; targets bless their own).

@@ -8,12 +8,9 @@ id: handoffs-are-files
 related: [shim-files-point-to-agents-md]
 confidence: high
 sources: ["AGENTS.md"]
-knowform:
-  direction: code-is-truth
-  bindings:
-    - doc_anchor: handoffs-are-files
-      governs: AGENTS.md
 ---
+
+## Fact
 
 Chat history evaporates at session end and is invisible to teammates and to
 other harnesses. Decisions go to `framework/docs/adr/`, facts go to `framework/knowledge/`

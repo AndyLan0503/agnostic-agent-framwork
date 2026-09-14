@@ -6,10 +6,10 @@
 .PHONY: help setup test e2e reconcile
 
 help: ## List targets
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-10s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-10s %s\n", $$1, $$2}'
 
 setup: ## One-time local setup (extend per project)
-	pip install knowform
+	pip install "knowform>=0.3,<0.4"
 
 test: ## Full verification - the gate before every commit (extend per project)
 	python3 -m unittest discover -s framework/scripts -p "test_*.py"

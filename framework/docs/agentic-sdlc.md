@@ -58,7 +58,23 @@ review ritual - is in framework/docs/running-the-pipeline.md.
 ## Separation of powers
 
 Roles are hats - one human or agent can wear several, but never implementer
-and reviewer on the same change. Reviewer roles (`interrogator`,
-`security-reviewer`, `release-captain`) declare `access: read-only` and are
-bound with no write permission in every harness, so the separation is
-enforced, not requested.
+and reviewer on the same change. Of the two things that sentence is usually
+taken to mean, one holds mechanically and one does not.
+
+**Structural.** The conductor dispatches review to a different agent than the
+one that wrote the diff, with its own context and its own role file. A role
+cannot review itself, and no cooperation is required for that to hold.
+
+**Not structural.** Reviewer roles (`interrogator`, `security-reviewer`,
+`release-captain`) declare `access: read-only`, and their bindings drop Edit
+and Write - but they keep Bash, and Bash writes. A security-reviewer
+dispatched read-only has been observed writing a file during an audit and
+reporting that it had; nothing stopped it. Read-only is an instruction the
+reviewer follows, not a limit the harness enforces.
+
+Bash stays, because every blocker worth having came from a reviewer that ran
+something: an adversarial payload against the guard, a fix mutated in memory
+to prove the test would fail on revert. The consequence to operate on is that
+`git status` after a review is part of the review - treat any file a reviewer
+changed as an unreviewed diff. The two ways to actually close this, neither
+implemented, are in AGENTS.md "Reviewer access".

@@ -1,13 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(make *)",
+      "Bash(make help)",
+      "Bash(make test)",
+      "Bash(make e2e)",
+      "Bash(make reconcile)",
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
       "Bash(git branch*)",
-      "Bash(gh pr *)",
-      "Bash(gh issue *)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr status*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh issue list*)",
+      "Bash(gh issue view*)",
+      "Bash(gh issue status*)",
       "Bash(terraform fmt*)",
       "Bash(terraform validate*)",
       "Bash(python3 framework/scripts/gnhf.py *)"
@@ -18,7 +27,12 @@
       "Read(**/.env)",
       "Read(**/.env.*)",
       "Read(**/*.pem)",
-      "Read(**/*serviceaccount*.json)"
+      "Read(**/*serviceaccount*.json)",
+      "Read(**/id_rsa)",
+      "Read(**/id_dsa)",
+      "Read(**/id_ecdsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/*.key)"
     ]
   },
   "enabledPlugins": {

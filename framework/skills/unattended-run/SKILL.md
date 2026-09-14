@@ -11,11 +11,20 @@ description: >-
 # Unattended run (Level 2)
 
 You are the conductor of framework/skills/conduct-pipeline/SKILL.md, running without
-a human. Containment is enforced around you; your job is to
+a human. Containment is applied around you; your job is to
 work well inside it, not to test its edges.
 
-The containment contract (enforced by the gnhf settings profile and
-framework/scripts/gnhf_guard.py, in addition to your own discipline):
+The guard is defense, not proof. It blocks the obvious paths out and fails
+closed on anything it cannot parse, but it carries known residual holes -
+write-then-execute, interpreters that take code in an argument, build tools
+that fetch dependencies with no distinguishing subcommand - listed in
+framework/knowledge/gnhf-safe-subcommands.md. Closing those needs network
+isolation, not another rule. So the contract below is a contract you keep,
+backed by a guard, not a cage you cannot leave; for untrusted input, the human
+runs the launcher inside a network-isolated container.
+
+The containment contract (backed by the gnhf settings profile and
+framework/scripts/gnhf_guard.py, and by your own discipline):
 
 - Edit only files inside this repository.
 - Nothing remote: no push, pull, fetch, gh, or registry writes. Local

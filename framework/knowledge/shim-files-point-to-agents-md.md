@@ -8,18 +8,9 @@ id: shim-files-point-to-agents-md
 related: [handoffs-are-files]
 confidence: high
 sources: ["CLAUDE.md", "GEMINI.md", ".cursor/rules/agents.mdc", ".github/copilot-instructions.md"]
-knowform:
-  direction: code-is-truth
-  bindings:
-    - doc_anchor: shim-files-point-to-agents-md
-      governs: CLAUDE.md
-    - doc_anchor: shim-files-point-to-agents-md
-      governs: GEMINI.md
-    - doc_anchor: shim-files-point-to-agents-md
-      governs: .cursor/rules/agents.mdc
-    - doc_anchor: shim-files-point-to-agents-md
-      governs: .github/copilot-instructions.md
 ---
+
+## Fact
 
 CLAUDE.md, GEMINI.md, `.cursor/rules/agents.mdc` and
 `.github/copilot-instructions.md` each contain only a pointer (or `@` import)

@@ -36,5 +36,13 @@ nothing (same pattern as AGENTS.md).
   never implementer and reviewer on the same change.
 - **Roles start cold.** Hand them artifact paths and a request summary
   explicitly; never assume they can see prior conversation.
-- **`access` is enforced, not requested.** Reviewer roles are read-only;
-  bind them with no write permission in every harness.
+- **`access` is honoured by the binding as far as the harness can express
+  it - and no further.** Reviewer roles declare `access: read-only`, and a
+  binding drops every write tool it can: Claude Code's `tools:` frontmatter
+  omits Edit and Write. It does not omit Bash, and Bash writes (`sed -i`,
+  `>`, `rm`). Reviewers keep Bash on purpose - a finding confirmed by running
+  something beats a finding read off the page - so read-only is enforced for
+  the file-writing tools and requested for Bash. What is structural is the
+  split itself: review goes to a different agent than the one that wrote the
+  diff. Treat any file a reviewer changed as an unreviewed diff. AGENTS.md
+  "Reviewer access" has the full statement and the two ways to close it.

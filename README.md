@@ -41,8 +41,8 @@ harnesses, and collaboration state that outlives any chat session.
 | `framework/knowledge/` | One-fact-per-card knowledge base |
 | `.claude/` | Claude Code bindings: permission policy, role shims, `/ship` + `/gnhf`, gnhf containment profile |
 | `.github/` | PR template mirroring the guardrails + Copilot shim |
-| `framework/scripts/` | `gnhf.py` unattended launcher + `gnhf_guard.py` containment hook, unit-tested |
-| `Makefile` | Canonical entrypoints: `setup`, `test`, `e2e` |
+| `framework/scripts/` | `adopt.py` installer, `gnhf.py` unattended launcher, `gnhf_guard.py` containment hook, and the tests that hold the framework to its own enforcement map - unit-tested, stdlib-only, Python 3.9 |
+| `Makefile` | Canonical entrypoints: `help`, `setup`, `test`, `e2e`, `reconcile` |
 
 ## Onboard a project
 

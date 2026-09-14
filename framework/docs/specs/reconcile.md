@@ -73,6 +73,12 @@ Drift = recorded vs actual. Plan = desired vs recorded.
 
 ### Frontmatter (per managed doc)
 
+> **Superseded (2026-09-14).** knowform 0.3.0 removed this inline-frontmatter
+> model. Bindings now live in `knowform.bindings.json` and address a doc region
+> by heading path; the HTML-comment anchor fences below are gone too. The
+> direction vocabulary and the lockfile below are unchanged. Kept as the record
+> of what M1 shipped - `framework/knowledge/README.md` is the live contract.
+
 ```yaml
 ---
 knowform:

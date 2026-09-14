@@ -27,6 +27,17 @@ obligations - they add no autonomy:
 5. Stay inside the spec - if the spec is wrong or incomplete, stop and say
    so rather than improvising scope.
 6. Follow the surrounding code's style, comment density and idiom.
+7. **Every check reports what it examined.** If your change adds a gate - a
+   lint rule, a scanner, a version check, a test that walks a file set - it
+   reports how much it examined (files, packages, rows), and it ships a test
+   that fails when that count is zero for the wrong reason. A check keyed to a
+   literal directory name, to one file extension, or to an absolute-path
+   ignore list passes forever while scanning nothing, and a test written
+   against the one input that already works will never notice. See
+   `framework/knowledge/checks-report-what-they-examined.md`.
+8. **Write the check before the thing it checks.** When the slice adds both,
+   the gate goes first: an allowlist written after the dependencies are
+   installed rubber-stamps whatever is already there.
 
 Constraints:
 - Never touch a Guardrail invariant; if the spec seems to require it, stop

@@ -17,12 +17,9 @@ related: [<other-card-id>]
 adr: ["NNNN"]              # decision records backing this fact, if any
 confidence: high | medium | low
 sources: ["<file or glob that proves the claim>"]
-knowform:                  # OKF extension; drift binding, if the card is sourced
-  direction: code-is-truth
-  bindings:
-    - doc_anchor: <anchor or whole-doc>
-      governs: <a sources entry>
 ---
+
+## Fact
 
 Two or three short paragraphs or bullets. State the fact, the enforcement or
 evidence, and anything a reader would otherwise get wrong.
@@ -30,6 +27,11 @@ evidence, and anything a reader would otherwise get wrong.
 
 Order OKF-reserved fields first (`type`, `title`, `description`, `tags`,
 `timestamp`), then the extensions.
+
+The body opens with a single `## Fact` heading and carries no others. It is
+what the drift reconciler addresses the card by (see below), and it is the
+reason "one fact per card" is a format rule and not only advice: a card with
+several sections has no single region a binding can point at.
 
 ## OKF (Open Knowledge Format)
 
@@ -54,7 +56,6 @@ Field mapping (the contract this document is the authority for):
 | `adr` | extension | backing decision records |
 | `confidence` | extension | high / medium / low |
 | `sources` | extension | proof-of-claim file globs; NOT `resource` |
-| `knowform` | extension | knowform drift-binding block (see below) |
 
 Rationale:
 
@@ -66,21 +67,39 @@ Rationale:
   `resource` is the canonical link to the resource a card describes, while
   `sources` are proof-of-claim file globs the drift reconciler checks against.
 - `resource` stays reserved but unused until a card has a natural URL.
-- `knowform:` is declared an official OKF extension field (see below), so one
-  frontmatter format serves both this knowledge base and the drift reconciler.
+- Drift bindings are deliberately NOT a frontmatter field. They live
+  out-of-band in `knowform.bindings.json` (see below), so a card stays a plain
+  OKF document with no tool-specific markup in it.
 
-### `knowform:` is an OKF extension field
+### Drift bindings live in `knowform.bindings.json`
 
 The drift reconciler is knowform, an external published tool
-(https://pypi.org/project/knowform/, github.com/AndyLan0503/knowform). It reads
-a nested `knowform:` block from a doc's frontmatter. That block is an OKF
-extension field: a single card can be simultaneously an OKF document (its scalar
-OKF fields and extensions) and a knowform-governed one (the `knowform:` block).
-One frontmatter format covers both.
+(https://pypi.org/project/knowform/, github.com/AndyLan0503/knowform). Bindings
+are declared out-of-band in `knowform.bindings.json` at the repo root, and a
+card carries no knowform markup at all - the cards stay plain OKF documents.
 
-Every sourced card carries a `code-is-truth` `knowform:` binding whose
-`governs` is its `sources`, so each card's claim is drift-checked against the
-file that proves it.
+A binding addresses a card region by heading path, optionally narrowed to one
+blank-line-separated block under it:
+
+```json
+{"doc": "framework/knowledge/<card>.md", "heading": ["Fact"],
+ "governs": "<a sources entry>", "direction": "code-is-truth"}
+```
+
+Add `"block": N` to bind a single paragraph or list rather than the whole card
+- `N` counts blocks under the heading, so a binding narrowed this way moves
+when the card is re-ordered and the next `make reconcile` reports it.
+
+Every sourced card is `code-is-truth`-bound once per `sources` entry, so each
+card's claim is drift-checked against the file that proves it.
+`framework/scripts/test_knowledge_cards.py` asserts that correspondence in both
+directions; `knowform.lock` records the blessed hashes and is regenerated with
+`knowform sync`.
+
+knowform is pinned in `make setup` to `>=0.3,<0.4`. The pin is load-bearing:
+0.3.0 removed the older inline-frontmatter binding model, and an unpinned
+install silently upgraded into a version that read zero bindings and reported
+success.
 
 ## Conventions
 
@@ -98,3 +117,4 @@ file that proves it.
 - [handoffs-are-files](handoffs-are-files.md) - anything worth keeping from a session lives in a committed file
 - [gnhf-safe-subcommands](gnhf-safe-subcommands.md) - criterion for green-flagging subcommands of blocked tools in unattended runs
 - [knowledge-cards-follow-okf](knowledge-cards-follow-okf.md) - the knowledge corpus conforms to OKF; README is the format authority
+- [checks-report-what-they-examined](checks-report-what-they-examined.md) - a check that does not report its scan set can pass while examining nothing

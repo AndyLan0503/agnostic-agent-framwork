@@ -29,10 +29,29 @@
       "Bash(rsync *)",
       "Bash(docker push*)",
       "Bash(npm publish*)",
+      "Bash(docker run*)",
+      "Bash(docker exec*)",
+      "Bash(docker create*)",
+      "Bash(podman run*)",
+      "Bash(podman exec*)",
+      "Bash(podman create*)",
+      "Bash(timeout *)",
+      "Bash(flock *)",
+      "Bash(su *)",
+      "Bash(busybox *)",
+      "Bash(uv *)",
+      "Bash(poetry *)",
+      "Bash(pipenv *)",
+      "Bash(conda *)",
       "Read(**/.env)",
       "Read(**/.env.*)",
       "Read(**/*.pem)",
-      "Read(**/*serviceaccount*.json)"
+      "Read(**/*serviceaccount*.json)",
+      "Read(**/id_rsa)",
+      "Read(**/id_dsa)",
+      "Read(**/id_ecdsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/*.key)"
     ]
   },
   "hooks": {
@@ -42,7 +61,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/framework/scripts/gnhf_guard.py\""
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/framework/scripts/gnhf_guard.py\"",
+            "timeout": 10
           }
         ]
       }

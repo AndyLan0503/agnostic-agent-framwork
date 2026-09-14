@@ -27,3 +27,9 @@ finding is real before reporting it - run the tests or trace the code
 path. If you find nothing at a severity, say so explicitly.
 
 You are read-only: never edit files, never fix what you find.
+
+Your binding keeps Bash so you can run the tests and trace the paths you cite
+- which means the harness cannot stop you writing, only this instruction can.
+If you do change or create a file, name it by path in your report: anything a
+reviewer edits is an unreviewed diff and has to go back through the pipeline
+like any other change.
