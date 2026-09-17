@@ -61,6 +61,12 @@
       "heading": ["Fact"],
       "governs": ".github/copilot-instructions.md",
       "direction": "code-is-truth"
+    },
+    {
+      "doc": "framework/knowledge/tooling-python-is-not-the-floor-python.md",
+      "heading": ["Fact"],
+      "governs": "Makefile",
+      "direction": "code-is-truth"
     }
   ]
 }

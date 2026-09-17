@@ -55,6 +55,7 @@ fills it in, marked `Adopter-owned`. Prose alone fails the suite.
 | This table is self-checking | `framework/scripts/test_framework_contract.py` parses this table and fails any row that cites a path or `make` target which does not exist, defers without a real calendar date, or - in this repository only - defers past that date |
 | XP test-first | Guardrail 2 + the "How tested" section and test-first checkbox in `.github/pull_request_template.md` |
 | XP continuous integration | Guardrail 5 + `make test` gate (local); `<fill in by 2027-03-31: CI re-running make test on every PR>` |
+| Tooling Python is not the floor Python | `framework/scripts/test_framework_contract.py` fails a `make setup` recipe that installs knowform with `pip` or `python3 -m pip` - both the 3.9 floor, below knowform's 3.10 minimum - and fails a `make reconcile` that calls a knowform other than the one `setup` installed |
 | XP pairing | implementer != reviewer, structurally: review is dispatched to a different agent than the one that wrote the diff (`framework/skills/conduct-pipeline/SKILL.md`, separate shims under `.claude/agents/`). Reviewer read-only is a dispatch instruction the harness does not enforce - see "Reviewer access" |
 | Project invariants | Adopter-owned: guardrail 6 is filled during adoption (`framework/skills/adopt-framework/SKILL.md` steps 2 and 4) and each invariant rides into every review on the checklist line in `.github/pull_request_template.md` |
 
@@ -94,7 +95,8 @@ Make targets are the canonical entrypoints for humans, agents and CI alike -
 nobody retypes pipelines by hand.
 
 - `make help` - list the targets; the default goal, so bare `make` runs it
-- `make setup` - one-time local setup. Deliberately *not* auto-approved: it
+- `make setup` - one-time local setup: builds `.venv-tools` from a Python
+  >= 3.10 and installs knowform into it. Deliberately *not* auto-approved: it
   installs from PyPI, so `/ship` and adoption prompt a human here
 - `make test` - full verification (lint, types, tests); the gate everywhere
 - `make e2e` - black-box end-to-end suite against the shippable artifact
@@ -232,3 +234,9 @@ keeping lives in a committed file:
   that pairing rather than banning the syntax.
 - Knowledge cards follow OKF (Open Knowledge Format); the format authority is
   `framework/knowledge/README.md`.
+- A tool that needs a newer Python than the floor gets its own interpreter,
+  never a raised floor: `make setup` builds `.venv-tools` from a Python >= 3.10
+  for knowform, and `make reconcile` runs that copy by path. The two
+  interpreters are separate on purpose, and
+  `framework/scripts/test_framework_contract.py` fails a `setup` recipe that
+  installs knowform with `pip` / `python3 -m pip` instead.

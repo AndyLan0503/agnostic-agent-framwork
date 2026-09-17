@@ -96,6 +96,11 @@ card's claim is drift-checked against the file that proves it.
 directions; `knowform.lock` records the blessed hashes and is regenerated with
 `knowform sync`.
 
+knowform runs from `.venv-tools`, built by `make setup` from a Python >= 3.10;
+knowform requires 3.10 and the suites run on the 3.9 floor, so the two
+interpreters stay separate. `make reconcile` calls that venv's binary by path,
+not whatever `knowform` PATH resolves to.
+
 knowform is pinned in `make setup` to `>=0.3,<0.4`. The pin is load-bearing:
 0.3.0 removed the older inline-frontmatter binding model, and an unpinned
 install silently upgraded into a version that read zero bindings and reported
@@ -118,3 +123,5 @@ success.
 - [gnhf-safe-subcommands](gnhf-safe-subcommands.md) - criterion for green-flagging subcommands of blocked tools in unattended runs
 - [knowledge-cards-follow-okf](knowledge-cards-follow-okf.md) - the knowledge corpus conforms to OKF; README is the format authority
 - [checks-report-what-they-examined](checks-report-what-they-examined.md) - a check that does not report its scan set can pass while examining nothing
+- [adopted-copies-run-the-same-suite](adopted-copies-run-the-same-suite.md) - every test runs twice, once as the framework and once as an adopted copy
+- [tooling-python-is-not-the-floor-python](tooling-python-is-not-the-floor-python.md) - knowform runs from `.venv-tools` on 3.10+, never on the 3.9 floor

@@ -1,3 +1,4 @@
 # Paths that are not a governed corpus (fnmatch/prefix, repo-relative).
-# Empty for now: the framework carries no non-corpus docs. Adopting projects
-# add their own (generated docs, vendored fixtures, scratch notes).
+# Adopting projects add their own (generated docs, vendored fixtures,
+# scratch notes).
+.venv-tools/

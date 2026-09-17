@@ -87,7 +87,8 @@ Invariants to preserve:
    `knowform.bindings.json` so its claim is drift-governed (pattern:
    `framework/knowledge/gnhf-safe-subcommands.md`). Keep the `knowform` pin in
    `make setup` - an unpinned upgrade past a binding-model change reads zero
-   bindings and still exits 0.
+   bindings and still exits 0 - and keep it installing into `.venv-tools` from
+   a Python >= 3.10, separate from the interpreter the suites run on.
 9. **Verify.**
    - `make setup && make test` green. `make setup` is deliberately not
      auto-approved - it installs from PyPI - so it prompts a human here.
@@ -96,6 +97,10 @@ Invariants to preserve:
      must exit 2.
    - Ask an agent in a fresh session: "what are the guardrails here?" -
      the answer should come from AGENTS.md.
+   - A red suite in a fresh adoption is a framework bug, not yours: the
+     framework's own `framework/scripts/test_adoption_smoke.py` runs the whole
+     suite inside a synthetic adopted copy, so anything that reaches you here
+     escaped that net. Report it upstream rather than working around it.
 
 **Updating later:** re-run the same install command. The recorded
 `.framework-version` (commit it with the scaffold) enables per-file

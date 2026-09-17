@@ -39,7 +39,14 @@ FRAMEWORK_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # Never shipped - the target owns its own instance.
 EXCLUDED_TOP = {"README.md", "HANDOFF.md"}
-EXCLUDED_FILES = {Path("framework/scripts/adopt.py"), Path("framework/scripts/test_adopt.py")}
+EXCLUDED_FILES = {
+    Path("framework/scripts/adopt.py"),
+    Path("framework/scripts/test_adopt.py"),
+    # Framework-side only: it builds an adopted copy and runs the suite in
+    # it, which in an adopted repo would recurse and import adopt.py - a
+    # file adoption deliberately does not ship.
+    Path("framework/scripts/test_adoption_smoke.py"),
+}
 # Framework-side development artifacts, excluded structurally so future
 # ADRs and specs need no list maintenance. The pre-manifest fallback
 # enumerates the base commit with them kept, so copies an earlier
@@ -56,6 +63,24 @@ FILE_MODES = {"100644", "100755"}
 EXECUTABLE_MODE = "100755"
 
 VERSION_FILE = ".framework-version"
+
+
+def ships(rel: Path, dev_artifacts: bool = False) -> bool:
+    """Does the scaffold install this path into a target?
+
+    The single authority on what adoption ships, so anything that needs to
+    reason about an adopted copy - the installer, its tests, the adoption
+    smoke test - asks the same question of the same rules.
+    """
+    if rel.parts[0] in EXCLUDED_TOP or rel in EXCLUDED_FILES:
+        return False
+    if not dev_artifacts:
+        if rel.parts[0] in DEV_EXCLUDED_TOP:
+            return False
+        if any(pattern.fullmatch(rel.as_posix()) for pattern in DEV_EXCLUDED_PATTERNS):
+            return False
+    return True
+
 
 Result = namedtuple(
     "Result", "copied kept updated conflicted removed orphaned unverified fallback")
@@ -98,13 +123,8 @@ def _tree_entries(root: Path, ref: str, *, dev_artifacts: bool = False,
         if mode not in FILE_MODES:
             continue
         rel = Path(name)
-        if rel.parts[0] in EXCLUDED_TOP or rel in EXCLUDED_FILES:
+        if not ships(rel, dev_artifacts):
             continue
-        if not dev_artifacts:
-            if rel.parts[0] in DEV_EXCLUDED_TOP:
-                continue
-            if any(pattern.fullmatch(name) for pattern in DEV_EXCLUDED_PATTERNS):
-                continue
         entries[rel] = mode
     return entries
 
