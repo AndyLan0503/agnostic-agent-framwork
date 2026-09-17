@@ -9,6 +9,11 @@ Guardrails, git/GitHub behavior and the enforcement map live in
 make setup
 ```
 
+`make setup` needs a Python >= 3.10 on PATH (`python3.10` through
+`python3.13`, or `make setup TOOLS_PYTHON=/path/to/python3.12`). That is for
+knowform only: it goes into `.venv-tools`, and the test suites keep running on
+the stock 3.9 interpreter, which needs nothing installed.
+
 `make setup` installs from PyPI, so it is deliberately absent from the
 auto-approved command list: an agent that reaches it stops and asks. Every
 other Make target (`help`, `test`, `e2e`, `reconcile`) is allowed by name.

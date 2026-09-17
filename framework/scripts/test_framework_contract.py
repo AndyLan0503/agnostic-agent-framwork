@@ -162,6 +162,16 @@ class RepositoryIdentityTest(unittest.TestCase):
         return root
 
     def test_this_checkout_is_the_framework_repository(self):
+        # This module ships verbatim to every adopting repository, where the
+        # assertion is false by construction. Guarded the same way
+        # `test_no_deferral_in_this_repository_has_expired` is; both branches
+        # of the discriminator stay covered by the synthetic trees below, and
+        # `test_adoption_smoke.py` fails if this guard is ever dropped.
+        if (ROOT / VERSION_FILE).exists():
+            self.skipTest(
+                f"this repository adopted the scaffold ({VERSION_FILE} is "
+                f"present), so it is not the framework repository"
+            )
         self.assertTrue(
             is_framework_repo(),
             f"{ROOT} should read as the framework repository: it ships "
@@ -265,6 +275,33 @@ def documented_targets() -> list[str]:
 def declared_targets() -> set[str]:
     text = MAKEFILE.read_text(encoding="utf-8")
     return set(re.findall(r"^([A-Za-z0-9_-]+):", text, flags=re.MULTILINE)) - {".PHONY"}
+
+
+def target_recipe(name: str) -> list:
+    """The tab-indented lines of one Make target, continuations joined."""
+    lines = MAKEFILE.read_text(encoding="utf-8").splitlines()
+    recipe, collecting = [], False
+    for line in lines:
+        if re.match(r"^%s:" % re.escape(name), line):
+            collecting = True
+            continue
+        if collecting:
+            if line.startswith("\t"):
+                if recipe and recipe[-1].endswith("\\"):
+                    recipe[-1] = recipe[-1][:-1] + line.strip()
+                else:
+                    recipe.append(line.strip())
+            elif line.strip():
+                break
+    return recipe
+
+
+# `pip`, `pip3` and `python3 -m pip` all resolve to the floor interpreter on
+# the stock macOS box the floor targets. Anything needing a newer Python must
+# name its own interpreter instead.
+FLOOR_PIP = re.compile(
+    r"(?:^|[\s;&|(])(?:pip3?|python3?\s+-m\s+pip)\s+install\b"
+)
 
 
 class HarnessPermissionsTest(unittest.TestCase):
@@ -635,6 +672,49 @@ class MakeHelpTest(unittest.TestCase):
             missing, [],
             f"`make help` omits documented target(s) {missing}. Output was:\n"
             f"{result.stdout}",
+        )
+
+
+class SetupInterpreterTest(unittest.TestCase):
+    """`make setup` must not install knowform with the Python 3.9 floor.
+
+    knowform requires >= 3.10 and the suites deliberately run on the stock
+    macOS 3.9 (AGENTS.md "Conventions"). Shipped as `pip install`, `make setup`
+    could not run at all on the interpreter the rest of the repository targets.
+    """
+
+    def test_setup_does_not_install_knowform_with_the_floor_interpreter(self):
+        recipe = target_recipe("setup")
+        self.assertTrue(recipe, "the `setup` target has an empty recipe")
+        if not any("knowform" in line for line in recipe):
+            self.skipTest(
+                "this repository's `setup` does not install knowform; the "
+                "version conflict this guards is not present"
+            )
+        offenders = [line for line in recipe if FLOOR_PIP.search(line)]
+        self.assertEqual(
+            offenders, [],
+            f"`make setup` installs knowform with the floor interpreter: "
+            f"{offenders}. knowform needs Python >= 3.10, the floor is "
+            f"{PYTHON_FLOOR[0]}.{PYTHON_FLOOR[1]}, and bare `pip` is not even "
+            f"on PATH on a stock macOS box. Name a newer interpreter - see the "
+            f"`TOOLS_PYTHON` / `TOOLS_VENV` pattern in the Makefile.",
+        )
+        print(f"setup recipe: {len(recipe)} line(s) checked")
+
+    def test_reconcile_runs_the_knowform_that_setup_installed(self):
+        recipe = target_recipe("reconcile")
+        self.assertTrue(recipe, "the `reconcile` target has an empty recipe")
+        if not any("knowform" in line for line in recipe):
+            self.skipTest("this repository's `reconcile` does not run knowform")
+        venv = [line for line in target_recipe("setup") if "-m venv" in line]
+        if not venv:
+            self.skipTest("`setup` installs knowform outside a venv")
+        self.assertTrue(
+            any("$(TOOLS_VENV)" in line for line in recipe),
+            f"`make setup` installs knowform into $(TOOLS_VENV) but "
+            f"`make reconcile` calls a knowform from PATH: {recipe}. That is "
+            f"either a different version or nothing at all.",
         )
 
 
